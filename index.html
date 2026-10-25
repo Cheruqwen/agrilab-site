@@ -57,6 +57,7 @@
     --btn-bg: #5BAE5F; --btn-ink: #0F1A12; --band: #0B0C22; --band-ink: #F4F6F0; --band-text: #C9CCE6; --band-muted: #9A9DC4;
     --band-green: #7CC97F; --band-orange: #F0975F; --header-bg: rgba(17, 18, 43, 0.94); --logo-light: none; --logo-dark: block;
     --photo-filter: brightness(0.9) saturate(0.95);
+    --glow: rgba(124, 201, 127, 0.10); --dots: rgba(180, 183, 245, 0.10);
     color-scheme: dark;
   }
 }
@@ -66,6 +67,7 @@
   --btn-bg: #5BAE5F; --btn-ink: #0F1A12; --band: #0B0C22; --band-ink: #F4F6F0; --band-text: #C9CCE6; --band-muted: #9A9DC4;
   --band-green: #7CC97F; --band-orange: #F0975F; --header-bg: rgba(17, 18, 43, 0.94); --logo-light: none; --logo-dark: block;
     --photo-filter: brightness(0.9) saturate(0.95);
+    --glow: rgba(124, 201, 127, 0.10); --dots: rgba(180, 183, 245, 0.10);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -250,6 +252,7 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 .ill { display: block; width: 100%; height: auto; }
 .ill-frame { border-radius: 12px; overflow: hidden; line-height: 0; }
 .panorama { margin-top: 48px; line-height: 0; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%); mask-image: linear-gradient(to bottom, transparent 0, #000 12%); }
+.panorama { overflow: hidden; }
 .panorama .photo { height: clamp(260px, 36vw, 580px); object-position: 55% 22%; }
 
 /* Photos */
@@ -300,9 +303,161 @@ footer h3 { color: var(--band-ink); font-size: 17px; }
 footer p { font-size: 15px; }
 footer .small { font-family: var(--font-mono); font-size: 12.5px; color: var(--band-muted); }
 footer img { height: 54px; width: auto; }
+/* ---------- Motion & polish ---------- */
+:root { --ease: cubic-bezier(0.16, 1, 0.3, 1); --glow: rgba(45, 122, 56, 0.08); --dots: rgba(28, 29, 74, 0.11); interpolate-size: allow-keywords; }
+::selection { background: #CFE6CB; color: #1C1D4A; }
+section[id] { scroll-margin-top: 76px; }
+@media (min-width: 900px) { .section { padding-block: 112px; } }
+
+/* Header: shadow once scrolled, reading progress, animated underlines */
+.site-header { transition: box-shadow .5s var(--ease); }
+.site-header.scrolled { box-shadow: 0 12px 32px -20px rgba(28, 29, 74, 0.45); }
+.progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, var(--green), var(--band-green)); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.nav a { position: relative; transition: color .3s ease; }
+.nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; border-radius: 2px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform .45s var(--ease); }
+.nav a:hover::after, .nav a.active::after { transform: scaleX(1); }
+.nav a.active { color: var(--ink); }
+
+/* Editorial eyebrows */
+.section-head .eyebrow, .hero-copy .eyebrow, .cta-inner .eyebrow { display: flex; align-items: center; gap: 12px; }
+.section-head .eyebrow::before, .hero-copy .eyebrow::before, .cta-inner .eyebrow::before { content: ""; width: 28px; height: 1px; background: currentColor; flex: none; }
+@media (max-width: 600px) { .hero-copy .eyebrow::before { display: none; } }
+
+/* Buttons: depth, sheen, arrow */
+.btn { position: relative; overflow: hidden; isolation: isolate; transition: transform .35s var(--ease), background-color .3s ease, border-color .3s ease, box-shadow .35s var(--ease), color .3s ease; }
+.btn-primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 24px -14px rgba(20, 60, 28, 0.9); }
+.btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 18px 34px -16px rgba(20, 60, 28, 0.95); }
+.btn-primary::before { content: ""; position: absolute; top: 0; bottom: 0; left: -75%; width: 50%; z-index: -1; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.3), transparent); transform: skewX(-20deg); transition: left .9s var(--ease); }
+.btn-primary:hover::before { left: 135%; }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-light:hover { border-color: #F4F6F0; background: rgba(244, 246, 240, 0.08); }
+.btn-arrow::after { content: "→"; display: inline-block; transition: transform .4s var(--ease); }
+.btn-arrow:hover::after { transform: translateX(4px); }
+
+/* Hero: lab-paper dots, masked headline, report that "prints" */
+.hero { position: relative; isolation: isolate; }
+.hero::before { content: ""; position: absolute; inset: 0 0 auto; height: 780px; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, var(--dots) 1px, transparent 1.6px); background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 78% 28%, #000 10%, transparent 75%); mask-image: radial-gradient(ellipse 60% 70% at 78% 28%, #000 10%, transparent 75%); }
+.hero h1 .line { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.hero h1 .line > span { display: inline-block; }
+.report { position: relative; }
+.report::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, transparent, rgba(91, 174, 95, 0.14) 46%, rgba(91, 174, 95, 0.55) 50%, transparent 54%) 0 -40% / 100% 34% no-repeat; }
+.report-body > :nth-child(2) { --d: 1; } .report-body > :nth-child(3) { --d: 2; } .report-body > :nth-child(4) { --d: 3; }
+.report-body > :nth-child(5) { --d: 4; } .report-body > :nth-child(6) { --d: 5; } .report-body > :nth-child(7) { --d: 6; } .report-body > :nth-child(8) { --d: 7; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-copy > * { animation: fadeUp 1s var(--ease) both; }
+  .hero-copy > h1 { animation: none; }
+  .hero-copy > :nth-child(1) { animation-delay: .05s; }
+  .hero-copy > :nth-child(3) { animation-delay: .42s; }
+  .hero-copy > :nth-child(4) { animation-delay: .52s; }
+  .hero-copy > :nth-child(5) { animation-delay: .62s; }
+  .hero h1 .line > span { animation: lineUp 1.15s var(--ease) both; }
+  .hero h1 .line:nth-child(1) > span { animation-delay: .12s; }
+  .hero h1 .line:nth-child(2) > span { animation-delay: .24s; }
+  .report { animation: cardIn 1.3s var(--ease) .3s both; }
+  .report-body > * { animation: fadeUp .7s var(--ease) both; animation-delay: calc(.85s + var(--d, 0) * .1s); }
+  .report::after { animation: scan 2.2s var(--ease) 1s both; }
+  .verdict .pill { animation: pop .7s var(--ease) 1.8s both; }
+  .report-foot { animation: fadeUp .7s var(--ease) 1.9s both; }
+}
+
+/* Stats strip dividers */
+@media (min-width: 860px) { .strip > div:not(:first-child) { padding-left: 24px; border-left: 1px solid var(--line); } }
+
+/* Ticker */
+.ticker { overflow: hidden; border-block: 1px solid var(--line); background: var(--surface);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.ticker-track { display: flex; width: max-content; }
+.ticker ul { display: flex; flex: none; margin: 0; padding: 0; list-style: none; }
+.ticker li { display: flex; align-items: center; gap: 28px; padding: 18px 0 18px 28px; font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.ticker li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: 0.7; }
+@media (prefers-reduced-motion: no-preference) {
+  .ticker-track { animation: marquee 70s linear infinite; }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+}
+
+/* Culture plate: slow turn, scanning sweep, ping ring */
+.plate { position: relative; overflow: visible; }
+.plate .photo { border-radius: 50%; }
+.plate::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(124, 201, 127, 0.55); pointer-events: none; opacity: 0; }
+.plate::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+  background: conic-gradient(from 0deg, rgba(124, 201, 127, 0) 0deg 270deg, rgba(124, 201, 127, 0.06) 300deg, rgba(124, 201, 127, 0.45) 359deg, rgba(124, 201, 127, 0) 360deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .plate .photo { animation: spin 200s linear infinite; }
+  .plate::after { animation: spin 6s linear infinite; }
+  .plate::before { animation: ping 3.4s var(--ease) infinite; }
+}
+
+/* Story seal */
+.story-photo { position: relative; }
+.seal { position: absolute; z-index: 2; right: 14px; bottom: -30px; width: 112px; height: 112px; border-radius: 50%; background: var(--surface); color: var(--ink);
+  box-shadow: 0 18px 36px -20px rgba(28, 29, 74, 0.6), 0 0 0 1px var(--line); }
+@media (min-width: 900px) { .seal { right: -28px; bottom: 40px; width: 128px; height: 128px; } }
+.seal svg { display: block; width: 100%; height: 100%; }
+.seal .ring { fill: currentColor; font-family: var(--font-mono); font-size: 9.4px; font-weight: 500; transform-box: view-box; transform-origin: center; }
+.seal .dot { fill: var(--green); }
+.seal .tick { fill: none; stroke: var(--surface); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: no-preference) { .seal .ring { animation: spin 30s linear infinite; } }
+
+/* Photo frames: hairline edge, slow zoom on hover */
+.ill-frame { position: relative; }
+.ill-frame::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.07); pointer-events: none; }
+.ill-frame .photo { transition: transform 1.4s var(--ease); }
+
+/* Cards: lift, spotlight that follows the pointer */
+.card, .card.hero-card, .aud { background: radial-gradient(520px circle at var(--mx, -600px) var(--my, -600px), var(--glow), transparent 42%), var(--card-bg, var(--surface)); }
+.card.hero-card { --card-bg: var(--green-soft); }
+.card, .aud, .sample-card, .pillar, .partner { transition: transform .5s var(--ease), box-shadow .5s var(--ease), border-color .3s ease; }
+@media (hover: hover) {
+  .card:hover, .aud:hover, .sample-card:hover { transform: translateY(-5px); box-shadow: 0 28px 50px -30px rgba(28, 29, 74, 0.45); }
+  .card:hover .photo, .aud:hover .photo, .sample-card:hover .photo { transform: scale(1.06); }
+  .pillar:hover, .partner:hover { transform: translateY(-3px); }
+}
+
+/* Steps: progress line draws across */
+.steps li { position: relative; }
+.steps li::after { content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 2px; background: var(--green); transform: scaleX(0); transform-origin: left; transition: transform 1.1s var(--ease) calc(var(--rd, 0s) + .3s); }
+.steps li.in::after { transform: scaleX(1); }
+
+/* Prices: row hover */
+tbody td { transition: background-color .25s ease; }
+@media (hover: hover) { tbody tr:not(.highlight):hover td { background: var(--surface-2); } }
+
+/* FAQ: plus turns to a cross, answers ease open */
+.faq summary { transition: color .3s ease; }
+.faq summary:hover { color: var(--green); }
+.faq summary::after { content: "+"; transition: transform .45s var(--ease); }
+.faq details[open] summary::after { content: "+"; transform: rotate(45deg); }
+.faq details::details-content { block-size: 0; overflow: clip; transition: block-size .5s var(--ease), content-visibility .5s allow-discrete; }
+.faq details[open]::details-content { block-size: auto; }
+
+/* Scroll reveals (only when the script runs) */
+html.js .reveal { opacity: 0; translate: 0 26px;
+  transition: opacity .9s var(--ease) var(--rd, 0s), translate 1s var(--ease) var(--rd, 0s), transform .5s var(--ease), box-shadow .5s var(--ease), border-color .3s ease; }
+html.js .reveal.in { opacity: 1; translate: none; }
+html.js .reveal-zoom .photo { scale: 1.08; transition: scale 2s var(--ease) var(--rd, 0s); }
+html.js .reveal-zoom.in .photo { scale: 1; }
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal { opacity: 1; translate: none; transition: none; }
+  html.js .reveal-zoom .photo { scale: 1; }
+}
+@media print { html.js .reveal { opacity: 1 !important; translate: none !important; } }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes lineUp { from { transform: translateY(110%); } to { transform: none; } }
+@keyframes cardIn { from { opacity: 0; transform: translateY(40px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: none; } }
+@keyframes scan { 0% { opacity: 0; background-position: 0 -40%; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; background-position: 0 140%; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes ping { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.32); } }
+@keyframes marquee { to { transform: translateX(-50%); } }
 </style>
 </head>
 <body>
+<script>document.documentElement.classList.add('js');</script>
+
 <header class="site-header">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="AgriLab Solutions home">
@@ -319,6 +474,7 @@ footer img { height: 54px; width: auto; }
     </nav>
     <a class="btn btn-primary header-cta" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book a test</a>
   </div>
+  <span class="progress" aria-hidden="true"></span>
 </header>
 
 <main id="top">
@@ -327,12 +483,12 @@ footer img { height: 54px; width: auto; }
       <div class="hero-grid">
         <div class="hero-copy">
           <p class="eyebrow">Feed &amp; milk testing lab · Kenol, Murang’a</p>
-          <h1>Know before <span class="accent">you feed.</span></h1>
+          <h1><span class="line"><span>Know before</span></span> <span class="line"><span class="accent">you feed.</span></span></h1>
           <p class="lead">Same-day feed nutrition results and fast aflatoxin testing for dairy farmers, co-operatives, feed millers and agrovets, from our laboratory in the heart of Kenya’s dairy belt.</p>
           <p class="swahili">Pima kwanza, lisha baadaye.</p>
           <div class="cta-row">
-            <a class="btn btn-primary" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
-            <a class="btn btn-ghost" href="#prices">See prices</a>
+            <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
+            <a class="btn btn-ghost btn-arrow" href="#prices">See prices</a>
           </div>
         </div>
 
@@ -346,14 +502,14 @@ footer img { height: 54px; width: auto; }
           </div>
           <div class="report-body">
             <p class="report-section">NutriScan · reported 3 Dec, 2:10 pm</p>
-            <div class="report-row"><span>Moisture</span><span class="val">11.8 %</span></div>
-            <div class="report-row"><span>Crude protein</span><span class="val">16.2 %</span></div>
-            <div class="report-row"><span>Crude fat</span><span class="val">3.9 %</span></div>
-            <div class="report-row"><span>Crude fibre</span><span class="val">8.4 %</span></div>
-            <div class="report-row"><span>Ash</span><span class="val">7.1 %</span></div>
+            <div class="report-row"><span>Moisture</span><span class="val" data-count="11.8" data-suffix=" %">11.8 %</span></div>
+            <div class="report-row"><span>Crude protein</span><span class="val" data-count="16.2" data-suffix=" %">16.2 %</span></div>
+            <div class="report-row"><span>Crude fat</span><span class="val" data-count="3.9" data-suffix=" %">3.9 %</span></div>
+            <div class="report-row"><span>Crude fibre</span><span class="val" data-count="8.4" data-suffix=" %">8.4 %</span></div>
+            <div class="report-row"><span>Ash</span><span class="val" data-count="7.1" data-suffix=" %">7.1 %</span></div>
             <p class="report-section">AflaCheck · reported 4 Dec</p>
             <div class="verdict">
-              <p class="what">Aflatoxin B1: <b class="mono">3.2 µg/kg</b><span>Legal limit for complete feed: 5 µg/kg</span></p>
+              <p class="what">Aflatoxin B1: <b class="mono" data-count="3.2" data-suffix=" µg/kg">3.2 µg/kg</b><span>Legal limit for complete feed: 5 µg/kg</span></p>
               <span class="pill">Within limit</span>
             </div>
           </div>
@@ -361,16 +517,23 @@ footer img { height: 54px; width: auto; }
         </article>
       </div>
     </div>
-    <div class="panorama"><img class="photo" src="assets/img/pasture-1000.jpg" srcset="assets/img/pasture-1000.jpg 1000w, assets/img/pasture-2000.jpg 1920w" sizes="100vw" width="1920" height="1280" alt="Young dairy cows standing in green pasture on a hillside" decoding="async"></div>
+    <div class="panorama"><img class="photo js-parallax" src="assets/img/pasture-1000.jpg" srcset="assets/img/pasture-1000.jpg 1000w, assets/img/pasture-2000.jpg 1920w" sizes="100vw" width="1920" height="1280" alt="Young dairy cows standing in green pasture on a hillside" decoding="async"></div>
     <div class="wrap">
       <div class="strip" role="list">
         <div role="listitem"><b>Same day</b><span>nutrition results for samples in by noon</span></div>
         <div role="listitem"><b>24–48 hrs</b><span>aflatoxin and milk M1 results</span></div>
-        <div role="listitem"><b>KES 1,500</b><span>per sample, nutrition panel</span></div>
-        <div role="listitem"><b>30 km</b><span>sample pickup around Kenol</span></div>
+        <div role="listitem"><b data-count="1500" data-prefix="KES ">KES 1,500</b><span>per sample, nutrition panel</span></div>
+        <div role="listitem"><b data-count="30" data-suffix=" km">30 km</b><span>sample pickup around Kenol</span></div>
       </div>
     </div>
   </section>
+
+  <div class="ticker" role="region" aria-label="Samples we test">
+    <div class="ticker-track">
+      <ul><li>Dairy meal</li><li>Maize</li><li>Maize germ</li><li>Wheat bran</li><li>Pollard</li><li>Sunflower cake</li><li>Cotton seed cake</li><li>Soya meal</li><li>Fish meal</li><li>Poultry feed</li><li>Pig feed</li><li>Maize flour</li><li>Raw milk</li><li>Processed milk</li></ul>
+      <ul aria-hidden="true"><li>Dairy meal</li><li>Maize</li><li>Maize germ</li><li>Wheat bran</li><li>Pollard</li><li>Sunflower cake</li><li>Cotton seed cake</li><li>Soya meal</li><li>Fish meal</li><li>Poultry feed</li><li>Pig feed</li><li>Maize flour</li><li>Raw milk</li><li>Processed milk</li></ul>
+    </div>
+  </div>
 
   <section class="band section" aria-labelledby="problem-title">
     <div class="wrap">
@@ -383,9 +546,9 @@ footer img { height: 54px; width: auto; }
         <div class="plate" aria-hidden="true"><img class="photo" src="assets/img/plate-720.jpg" width="720" height="720" alt="" loading="lazy" decoding="async"></div>
       </div>
       <div class="facts">
-        <div class="fact"><b>61%</b><p>of dairy feed samples from Kenyan feed manufacturers were above the 5 ppb aflatoxin B1 limit in an ILRI study.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
-        <div class="fact"><b>25%</b><p>drop in milk yield has been recorded when dairy feed carries more than 120 ppb of aflatoxin B1.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
-        <div class="fact"><b>64%</b><p>of animal feed samples in records from three major Kenyan labs were above Kenya’s total aflatoxin standard.</p><a href="https://research.slu.se/en/publications/mycotoxin-hazards-in-the-kenyan-food-and-feed-market-a-retrospect/" target="_blank" rel="noopener">Source: Kibugu et al., SLU</a></div>
+        <div class="fact"><b data-count="61" data-suffix="%">61%</b><p>of dairy feed samples from Kenyan feed manufacturers were above the 5 ppb aflatoxin B1 limit in an ILRI study.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
+        <div class="fact"><b data-count="25" data-suffix="%">25%</b><p>drop in milk yield has been recorded when dairy feed carries more than 120 ppb of aflatoxin B1.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
+        <div class="fact"><b data-count="64" data-suffix="%">64%</b><p>of animal feed samples in records from three major Kenyan labs were above Kenya’s total aflatoxin standard.</p><a href="https://research.slu.se/en/publications/mycotoxin-hazards-in-the-kenyan-food-and-feed-market-a-retrospect/" target="_blank" rel="noopener">Source: Kibugu et al., SLU</a></div>
       </div>
     </div>
   </section>
@@ -397,7 +560,17 @@ footer img { height: 54px; width: auto; }
           <p class="eyebrow">Our story</p>
           <h2 id="story-title">It started with our own cows.</h2>
         </div>
-        <div class="ill-frame"><img class="photo" src="assets/img/trough-1000.jpg" width="1000" height="1000" alt="A cow eating chopped feed from a wooden trough" loading="lazy" decoding="async"></div>
+        <div class="story-photo">
+          <div class="seal" aria-hidden="true">
+            <svg viewBox="0 0 120 120">
+              <defs><path id="seal-path" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0"/></defs>
+              <g class="ring"><text><textPath href="#seal-path" textLength="280" lengthAdjust="spacing">FARMER-FOUNDED · INDEPENDENT · KENOL ·</textPath></text></g>
+              <circle class="dot" cx="60" cy="60" r="21"/>
+              <path class="tick" d="M50.5 60.5l6.5 6.5 13-14"/>
+            </svg>
+          </div>
+          <div class="ill-frame"><img class="photo" src="assets/img/trough-1000.jpg" width="1000" height="1000" alt="A cow eating chopped feed from a wooden trough" loading="lazy" decoding="async"></div>
+        </div>
       </div>
       <div class="story-text">
         <p>AgriLab Solutions began on a dairy farm. Our cows were fed feed contaminated with aflatoxin. By the time we knew, they had already eaten it.</p>
@@ -596,7 +769,7 @@ footer img { height: 54px; width: auto; }
           </tbody>
         </table>
       </div>
-      <p class="note">*Samples received by 12 noon. **Samples received by 10 am. Volume discounts: 10% from 20 samples a month, 20% from 50. Pickup within 30 km of Kenol: KES 500 per trip, free for five or more samples.</p>
+      <p class="note prices-note">*Samples received by 12 noon. **Samples received by 10 am. Volume discounts: 10% from 20 samples a month, 20% from 50. Pickup within 30 km of Kenol: KES 500 per trip, free for five or more samples.</p>
     </div>
   </section>
 
@@ -607,8 +780,8 @@ footer img { height: 54px; width: auto; }
         <h2 id="partners-title">Grow with AgriLab.</h2>
       </div>
       <div class="partners">
-        <div class="partner"><h3>Agrovets: become a drop-off point</h3><p>Hold samples for your customers and earn 10% of every paid test. We supply sample bags, a poster and a counter sign, and collect from you.</p><a class="btn btn-ghost" href="#contact">Ask about the agrovet offer</a></div>
-        <div class="partner"><h3>Co-ops and millers: monthly plans</h3><p>Milk safety plans for co-operatives from KES 25,000 a month. QC plans for feed mills with priority slots and a monthly trend report. Try a month free.</p><a class="btn btn-ghost" href="#contact">Ask for a plan</a></div>
+        <div class="partner"><h3>Agrovets: become a drop-off point</h3><p>Hold samples for your customers and earn 10% of every paid test. We supply sample bags, a poster and a counter sign, and collect from you.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask about the agrovet offer</a></div>
+        <div class="partner"><h3>Co-ops and millers: monthly plans</h3><p>Milk safety plans for co-operatives from KES 25,000 a month. QC plans for feed mills with priority slots and a monthly trend report. Try a month free.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask for a plan</a></div>
       </div>
     </div>
   </section>
@@ -644,14 +817,14 @@ footer img { height: 54px; width: auto; }
   </section>
 
   <section class="cta-band" aria-labelledby="cta-title">
-    <img class="photo" src="assets/img/sunrise-1000.jpg" srcset="assets/img/sunrise-1000.jpg 1000w, assets/img/sunrise-2000.jpg 1920w" sizes="100vw" width="1920" height="1280" alt="" loading="lazy" decoding="async">
+    <img class="photo js-parallax" src="assets/img/sunrise-1000.jpg" srcset="assets/img/sunrise-1000.jpg 1000w, assets/img/sunrise-2000.jpg 1920w" sizes="100vw" width="1920" height="1280" alt="" loading="lazy" decoding="async">
     <div class="wrap cta-inner">
       <p class="eyebrow">Ready when you are</p>
       <h2 id="cta-title">Healthy herds start with tested feed.</h2>
       <p class="lead">Bring a sample to Horizon Business Park in Kenol, leave it at a partner agrovet, or ask us to collect it.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
-        <a class="btn btn-light" href="#contact">Visit or call</a>
+        <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
+        <a class="btn btn-light btn-arrow" href="#contact">Visit or call</a>
       </div>
     </div>
   </section>
@@ -772,6 +945,115 @@ footer img { height: 54px; width: auto; }
     out.hidden = false;
     document.getElementById('q-copy').onclick = function () { copyText(text, document.getElementById('q-copy')); };
   });
+})();
+</script>
+<script>
+(function () {
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+
+  // Numbers that count up.
+  function fmt(el, v) {
+    var raw = el.getAttribute('data-count'), dec = (raw.split('.')[1] || '').length;
+    return (el.getAttribute('data-prefix') || '') + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (el.getAttribute('data-suffix') || '');
+  }
+  function countUp(el, delay) {
+    if (reduce || el.__counted) return;
+    el.__counted = true;
+    var target = parseFloat(el.getAttribute('data-count')), dur = 1500;
+    el.textContent = fmt(el, 0);
+    setTimeout(function () {
+      var t0 = null;
+      function step(t) {
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = fmt(el, target * e);
+        if (k < 1) requestAnimationFrame(step); else el.textContent = fmt(el, target);
+      }
+      requestAnimationFrame(step);
+    }, delay || 0);
+  }
+
+  // The example report "prints" on load.
+  $$('.report [data-count]').forEach(function (el, i) { countUp(el, 950 + i * 110); });
+
+  // Scroll reveals, staggered within each group.
+  var groups = ['.section-head', '.hero .strip > div', '.panorama', '.plate', '.fact', '.story-photo', '.story-text > p',
+    '.card', '.steps li', '.sample-card', '.aud', '.pillar', '.table-wrap', '.prices-note', '.partner', '.faq', '.bench',
+    '.cta-inner > *', '.contact-item', '.contact figure', '#quote', 'footer .wrap > div'];
+  var targets = [];
+  groups.forEach(function (sel) {
+    var seen = new Map();
+    $$(sel).forEach(function (el) {
+      if (el.closest('.hero-copy, .report')) return;
+      var p = el.parentNode, i = seen.get(p) || 0;
+      seen.set(p, i + 1);
+      el.classList.add('reveal');
+      el.style.setProperty('--rd', ((i % 4) * 90) + 'ms');
+      targets.push(el);
+    });
+  });
+  var pano = document.querySelector('.panorama');
+  if (pano) { pano.classList.add('reveal-zoom'); pano.style.setProperty('--rd', '450ms'); }
+
+  function show(el) {
+    el.classList.add('in');
+    var base = parseInt(el.style.getPropertyValue('--rd'), 10) || 0;
+    (el.matches('[data-count]') ? [el] : $$('[data-count]', el)).forEach(function (c) { countUp(c, base + 150); });
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { show(en.target); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    targets.forEach(function (el) { io.observe(el); });
+
+    // Highlight the section in view in the menu.
+    var links = {};
+    $$('.nav a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+    var nav = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        Object.keys(links).forEach(function (k) { links[k].classList.toggle('active', k === en.target.id); });
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(links).forEach(function (id) { var sec = document.getElementById(id); if (sec) nav.observe(sec); });
+  } else {
+    targets.forEach(show);
+  }
+
+  // Header shadow, reading progress and gentle parallax on the big photos.
+  var header = document.querySelector('.site-header'), bar = document.querySelector('.progress');
+  var par = $$('.js-parallax'), ticking = false;
+  function update() {
+    ticking = false;
+    var y = window.scrollY || window.pageYOffset || 0, vh = window.innerHeight;
+    if (header) header.classList.toggle('scrolled', y > 8);
+    var max = document.documentElement.scrollHeight - vh;
+    if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0).toFixed(4) + ')';
+    if (reduce) return;
+    par.forEach(function (img) {
+      var box = img.parentNode.getBoundingClientRect();
+      if (box.bottom < -50 || box.top > vh + 50) return;
+      var p = Math.max(-1, Math.min(1, (box.top + box.height / 2 - vh / 2) / vh));
+      img.style.transform = 'translate3d(0,' + (p * -0.06 * box.height).toFixed(1) + 'px,0) scale(1.14)';
+    });
+  }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+
+  // Soft spotlight that follows the pointer on cards.
+  if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    $$('.card, .aud').forEach(function (c) {
+      c.addEventListener('pointermove', function (e) {
+        var r = c.getBoundingClientRect();
+        c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+      c.addEventListener('pointerleave', function () { c.style.removeProperty('--mx'); c.style.removeProperty('--my'); });
+    });
+  }
 })();
 </script>
 </body>
