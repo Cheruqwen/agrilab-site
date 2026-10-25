@@ -256,6 +256,7 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 .photo { display: block; width: 100%; height: auto; object-fit: cover; background: var(--surface-2); filter: var(--photo-filter); }
 .card .photo { aspect-ratio: 3 / 2; }
 .story-figure .photo { aspect-ratio: 1; }
+.sample-card .photo, .aud .photo { aspect-ratio: 4 / 3; }
 .band-top { display: grid; gap: 36px; align-items: center; }
 @media (min-width: 900px) { .band-top { grid-template-columns: minmax(0, 1fr) 300px; gap: 64px; } }
 .band-top .section-head { margin-bottom: 0; }
@@ -523,28 +524,19 @@ footer img { height: 54px; width: auto; }
 
       <div class="sampling">
         <div class="sample-card">
-          <div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A feed sack showing five places to take scoops from" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="sa1-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="sa1-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#sa1-clip)"><rect width="200" height="140" fill="#F8EBD0"/><g transform="translate(56 6) scale(1.1)">
-<ellipse cx="44" cy="120" rx="42" ry="5" fill="#000" opacity="0.14"/>
-<path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#D9B98A"/>
-<path d="M58 20 Q 66 72 62 116 Q 72 115 78 112 Q 84 72 76 22 Q 68 19 58 20 Z" fill="#B8955F" opacity="0.55"/>
-<path d="M14 22 Q 30 8 44 12 Q 58 8 74 22 Q 60 28 44 26 Q 28 28 14 22 Z" fill="#E8D2A8"/>
-<path d="M36 14 Q 44 2 52 14" fill="none" stroke="#B8955F" stroke-width="3" stroke-linecap="round"/>
-<rect x="14" y="52" width="60" height="26" rx="3" fill="#5BAE5F"/>
-<text x="44" y="69" text-anchor="middle" font-family="Lexend, Verdana, sans-serif" font-size="8.5" font-weight="600" fill="#fff" letter-spacing="0.5"></text>
-<path d="M20 36 L 70 36 M20 92 L 70 92 M20 100 L 70 100" stroke="#B8955F" stroke-width="1.2" opacity="0.45"/>
-</g><circle cx="80" cy="44" r="7" fill="#E5793B"/><text x="80" y="47.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">1</text><circle cx="108" cy="58" r="7" fill="#E5793B"/><text x="108" y="61.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">2</text><circle cx="90" cy="80" r="7" fill="#E5793B"/><text x="90" y="83.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">3</text><circle cx="114" cy="100" r="7" fill="#E5793B"/><text x="114" y="103.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">4</text><circle cx="84" cy="114" r="7" fill="#E5793B"/><text x="84" y="117.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">5</text><rect width="200" height="140" filter="url(#sa1-gr)" opacity="0.22"/></g></svg></div>
+          <div class="ill-frame"><img class="photo" src="assets/img/soybeans-800.jpg" width="800" height="600" alt="Soybeans, a protein ingredient in dairy feed" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Feed for NutriScan</p>
           <p class="qty">500 g</p>
           <ol><li>Take scoops from the top, middle and bottom of the sack.</li><li>Mix them on a clean, dry surface.</li><li>Fill a clean, dry bag and seal it.</li></ol>
         </div>
         <div class="sample-card">
-          <div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A pile of grain showing five places to sample from" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="sa2-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="sa2-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#sa2-clip)"><rect width="200" height="140" fill="#FBF0CF"/><path d="M24 120 Q 60 40 100 36 Q 140 40 176 120 Z" fill="#F2C14E"/><circle cx="40" cy="70" r="2.6" fill="#D9A12B"/><circle cx="69" cy="87" r="2.6" fill="#D9A12B"/><circle cx="98" cy="104" r="2.6" fill="#D9A12B"/><circle cx="127" cy="75" r="2.6" fill="#D9A12B"/><circle cx="156" cy="92" r="2.6" fill="#D9A12B"/><circle cx="61" cy="109" r="2.6" fill="#D9A12B"/><circle cx="90" cy="80" r="2.6" fill="#D9A12B"/><circle cx="119" cy="97" r="2.6" fill="#D9A12B"/><circle cx="148" cy="114" r="2.6" fill="#D9A12B"/><circle cx="53" cy="85" r="2.6" fill="#D9A12B"/><circle cx="82" cy="102" r="2.6" fill="#D9A12B"/><circle cx="111" cy="73" r="2.6" fill="#D9A12B"/><circle cx="140" cy="90" r="2.6" fill="#D9A12B"/><circle cx="45" cy="107" r="2.6" fill="#D9A12B"/><circle cx="74" cy="78" r="2.6" fill="#D9A12B"/><circle cx="103" cy="95" r="2.6" fill="#D9A12B"/><circle cx="132" cy="112" r="2.6" fill="#D9A12B"/><circle cx="161" cy="83" r="2.6" fill="#D9A12B"/><circle cx="66" cy="100" r="2.6" fill="#D9A12B"/><circle cx="95" cy="71" r="2.6" fill="#D9A12B"/><circle cx="124" cy="88" r="2.6" fill="#D9A12B"/><circle cx="153" cy="105" r="2.6" fill="#D9A12B"/><circle cx="58" cy="76" r="2.6" fill="#D9A12B"/><circle cx="87" cy="93" r="2.6" fill="#D9A12B"/><circle cx="116" cy="110" r="2.6" fill="#D9A12B"/><circle cx="145" cy="81" r="2.6" fill="#D9A12B"/><circle cx="100" cy="50" r="7" fill="#E5793B"/><text x="100" y="53.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">1</text><circle cx="66" cy="82" r="7" fill="#E5793B"/><text x="66" y="85.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">2</text><circle cx="134" cy="82" r="7" fill="#E5793B"/><text x="134" y="85.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">3</text><circle cx="52" cy="108" r="7" fill="#E5793B"/><text x="52" y="111.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">4</text><circle cx="148" cy="108" r="7" fill="#E5793B"/><text x="148" y="111.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" font-weight="500" fill="#fff">5</text><rect width="200" height="140" filter="url(#sa2-gr)" opacity="0.22"/></g></svg></div>
+          <div class="ill-frame"><img class="photo" src="assets/img/flourbag-800.jpg" width="800" height="600" alt="A cloth sample bag full of maize flour beside a sieve" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Feed, grain or flour for aflatoxin</p>
           <p class="qty">1 kg</p>
           <ol><li>Take at least five scoops from different places.</li><li>Mix well. Aflatoxin hides in pockets.</li><li>Bag 1 kg; keep it dry and out of the sun.</li></ol>
         </div>
         <div class="sample-card">
-          <div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A 100 millilitre milk sample bottle and a cool box" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="sa3-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="sa3-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#sa3-clip)"><rect width="200" height="140" fill="#E4EDF3"/><g transform="translate(78 14)"><rect x="12" y="0" width="20" height="10" rx="3" fill="#33358A"/><path d="M10 10 L 34 10 L 38 24 L 40 104 Q 40 112 32 112 L 12 112 Q 4 112 4 104 L 6 24 Z" fill="#FFFFFF" stroke="#C9CDE6" stroke-width="2"/><path d="M5.2 44 L 38.8 44 L 40 104 Q 40 112 32 112 L 12 112 Q 4 112 4 104 Z" fill="#FFFDF5"/><path d="M30 44 H 44" stroke="#E5793B" stroke-width="2"/><text x="47" y="47" font-family="IBM Plex Mono, monospace" font-size="9" fill="#1C1D4A">100 ml</text></g><g transform="translate(26 70)"><rect width="34" height="40" rx="6" fill="#33358A"/><rect x="4" y="-6" width="26" height="10" rx="3" fill="#8FA4B8"/><text x="17" y="25" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#DCEBD8">4 °C</text></g><rect width="200" height="140" filter="url(#sa3-gr)" opacity="0.22"/></g></svg></div>
+          <div class="ill-frame"><img class="photo" src="assets/img/beaker-800.jpg" width="800" height="600" alt="Milk in a 100 ml laboratory beaker with a pipette" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Milk for aflatoxin M1</p>
           <p class="qty">100 ml</p>
           <ol><li>Stir the milk so the cream is mixed in.</li><li>Fill a clean bottle and close it tightly.</li><li>Keep it cool; deliver within 24 hours.</li></ol>
@@ -560,107 +552,10 @@ footer img { height: 54px; width: auto; }
         <h2 id="who-title">Built for the people who feed Kenya’s herds.</h2>
       </div>
       <div class="audiences">
-        <div class="aud"><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A dairy cow in a green field" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="au1-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="au1-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#au1-clip)"><rect width="200" height="140" fill="#DCEBD8"/><path d="M0 104 Q 100 92 200 104 L 200 140 L 0 140 Z" fill="#8CCB7E"/><g transform="translate(30 20) scale(0.62 0.62)">
-<defs><clipPath id="au1c-b"><path d="M62 58 C 70 38 112 34 150 38 C 192 34 224 40 233 60 C 241 82 237 104 229 116 C 223 125 210 127 196 125 L 96 125 C 78 125 64 117 60 100 Z"/></clipPath><clipPath id="au1c-n"><path d="M68 58 C 58 52 50 48 42 46 L 42 100 C 52 108 62 112 74 114 Z"/></clipPath></defs>
-<ellipse cx="148" cy="174" rx="104" ry="7" fill="#000" opacity="0.13"/>
-<rect x="92" y="112" width="12" height="58" rx="5" fill="#DDD8CC"/><rect x="91.5" y="163" width="13" height="8" rx="2.5" fill="#3A3A46"/><rect x="203" y="110" width="13" height="60" rx="5" fill="#DDD8CC"/><rect x="202.5" y="163" width="14" height="8" rx="2.5" fill="#3A3A46"/>
-<path d="M68 58 C 58 52 50 48 42 46 L 42 100 C 52 108 62 112 74 114 Z" fill="#F7F5EF"/>
-<g clip-path="url(#au1c-n)"><path d="M40 56 C 54 58 66 68 64 92 C 52 94 44 82 40 56 Z" fill="#1E1F2E"/></g>
-<path d="M62 58 C 70 38 112 34 150 38 C 192 34 224 40 233 60 C 241 82 237 104 229 116 C 223 125 210 127 196 125 L 96 125 C 78 125 64 117 60 100 Z" fill="#F7F5EF"/>
-<g clip-path="url(#au1c-b)">
-<path d="M98 30 C 122 24 152 40 148 64 C 144 88 112 92 98 76 C 86 62 84 38 98 30 Z" fill="#1E1F2E"/>
-<path d="M174 44 C 198 32 236 46 242 70 L 242 100 C 222 108 196 98 184 86 C 172 74 162 54 174 44 Z" fill="#1E1F2E"/>
-<path d="M118 102 C 130 92 158 96 162 112 L 164 130 L 114 130 C 108 118 108 108 118 102 Z" fill="#1E1F2E"/>
-<path d="M60 98 C 70 110 92 120 124 123 L 60 132 Z" fill="#DDD8CC" opacity="0.7"/>
-</g>
-<path d="M232 62 C 246 82 244 112 240 134" fill="none" stroke="#1E1F2E" stroke-width="3" stroke-linecap="round"/>
-<ellipse cx="240" cy="140" rx="4.5" ry="8" fill="#1E1F2E"/>
-<path d="M176 120 C 176 137 208 137 208 120 Z" fill="#E9A8A0"/>
-<rect x="182" y="131" width="4" height="7" rx="2" fill="#C9837C"/><rect x="198" y="131" width="4" height="7" rx="2" fill="#C9837C"/>
-<rect x="76" y="112" width="13" height="60" rx="5" fill="#F7F5EF"/><rect x="75.5" y="165" width="14" height="8" rx="2.5" fill="#3A3A46"/><rect x="216" y="108" width="14" height="64" rx="5" fill="#F7F5EF"/><rect x="216" y="108" width="14" height="26" rx="5" fill="#1E1F2E"/><rect x="215.5" y="165" width="15" height="8" rx="2.5" fill="#3A3A46"/>
-<g transform="rotate(0 56 58)">
-<g transform="rotate(-24 56 50)"><ellipse cx="58" cy="50" rx="13" ry="6.5" fill="#1E1F2E"/><ellipse cx="60" cy="50" rx="8" ry="3.3" fill="#E9A8A0"/></g>
-<path d="M42 42 C 44 34 50 31 54 32 C 50 35 48 39 47 44 Z" fill="#E8E2D0"/>
-<path d="M50 46 C 40 40 22 40 14 48 C 6 56 6 74 10 90 C 13 102 22 108 34 106 C 44 104 50 96 52 86 C 56 74 58 58 50 46 Z" fill="#1E1F2E"/>
-<path d="M28 44 C 25 58 25 78 28 94 L 36 94 C 38 78 38 58 36 44 Z" fill="#F7F5EF"/>
-<ellipse cx="25" cy="101" rx="15" ry="9.5" fill="#E9A8A0"/>
-<ellipse cx="19" cy="101" rx="2.2" ry="1.6" fill="#C9837C"/><ellipse cx="30" cy="101" rx="2.2" ry="1.6" fill="#C9837C"/>
-<circle cx="19" cy="64" r="3.4" fill="#F7F5EF"/><circle cx="18.4" cy="64" r="1.8" fill="#1E1F2E"/>
-</g>
-</g><g transform="translate(160 72) scale(0.5)">
-<defs><linearGradient id="au1ch-st" x1="0" x2="1"><stop offset="0" stop-color="#EEF1F4"/><stop offset="0.45" stop-color="#C9CED6"/><stop offset="1" stop-color="#8F98A6"/></linearGradient></defs>
-<ellipse cx="30" cy="99" rx="28" ry="4" fill="#000" opacity="0.14"/>
-<path d="M8 40 L 8 92 Q 8 98 14 98 L 46 98 Q 52 98 52 92 L 52 40 Q 52 30 40 26 L 38 17 L 22 17 L 20 26 Q 8 30 8 40 Z" fill="url(#au1ch-st)"/>
-<rect x="8" y="52" width="44" height="4" fill="#8F98A6" opacity="0.55"/><rect x="8" y="84" width="44" height="4" fill="#8F98A6" opacity="0.55"/>
-<rect x="17" y="9" width="26" height="10" rx="3" fill="#8F98A6"/><rect x="26" y="4" width="8" height="6" rx="2" fill="#8F98A6"/>
-<path d="M10 36 C 0 34 0 46 9 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<path d="M50 36 C 60 34 60 46 51 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<rect x="15" y="34" width="5" height="58" rx="2.5" fill="#fff" opacity="0.65"/>
-</g><rect width="200" height="140" filter="url(#au1-gr)" opacity="0.22"/></g></svg></div><p class="who">Dairy farmers</p><q>Is this feed safe, and is it what I paid for?</q><p>FeedSafe Combo, drop-off at your agrovet, results on WhatsApp in plain words.</p></div>
-        <div class="aud"><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A co-operative milk cooler with churns" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="au2-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="au2-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#au2-clip)"><rect width="200" height="140" fill="#E4EDF3"/><g transform="translate(8 12) scale(1.0)">
-<defs><linearGradient id="au2-t" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#EEF1F4"/><stop offset="0.5" stop-color="#C9CED6"/><stop offset="1" stop-color="#8F98A6"/></linearGradient></defs>
-<ellipse cx="92" cy="118" rx="88" ry="5" fill="#000" opacity="0.13"/>
-<rect x="20" y="20" width="140" height="64" rx="32" fill="url(#au2-t)"/>
-<rect x="36" y="30" width="100" height="5" rx="2.5" fill="#fff" opacity="0.7"/>
-<rect x="76" y="10" width="28" height="14" rx="4" fill="#8F98A6"/>
-<rect x="38" y="80" width="8" height="34" fill="#8F98A6"/><rect x="134" y="80" width="8" height="34" fill="#8F98A6"/>
-<rect x="60" y="46" width="60" height="20" rx="3" fill="#1C1D4A"/>
-<text x="90" y="59.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#DCEBD8">4.0 °C</text>
-<g transform="translate(4 66) scale(0.5)">
-<defs><linearGradient id="au2c1-st" x1="0" x2="1"><stop offset="0" stop-color="#EEF1F4"/><stop offset="0.45" stop-color="#C9CED6"/><stop offset="1" stop-color="#8F98A6"/></linearGradient></defs>
-<ellipse cx="30" cy="99" rx="28" ry="4" fill="#000" opacity="0.14"/>
-<path d="M8 40 L 8 92 Q 8 98 14 98 L 46 98 Q 52 98 52 92 L 52 40 Q 52 30 40 26 L 38 17 L 22 17 L 20 26 Q 8 30 8 40 Z" fill="url(#au2c1-st)"/>
-<rect x="8" y="52" width="44" height="4" fill="#8F98A6" opacity="0.55"/><rect x="8" y="84" width="44" height="4" fill="#8F98A6" opacity="0.55"/>
-<rect x="17" y="9" width="26" height="10" rx="3" fill="#8F98A6"/><rect x="26" y="4" width="8" height="6" rx="2" fill="#8F98A6"/>
-<path d="M10 36 C 0 34 0 46 9 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<path d="M50 36 C 60 34 60 46 51 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<rect x="15" y="34" width="5" height="58" rx="2.5" fill="#fff" opacity="0.65"/>
-</g><g transform="translate(150 66) scale(0.5)">
-<defs><linearGradient id="au2c2-st" x1="0" x2="1"><stop offset="0" stop-color="#EEF1F4"/><stop offset="0.45" stop-color="#C9CED6"/><stop offset="1" stop-color="#8F98A6"/></linearGradient></defs>
-<ellipse cx="30" cy="99" rx="28" ry="4" fill="#000" opacity="0.14"/>
-<path d="M8 40 L 8 92 Q 8 98 14 98 L 46 98 Q 52 98 52 92 L 52 40 Q 52 30 40 26 L 38 17 L 22 17 L 20 26 Q 8 30 8 40 Z" fill="url(#au2c2-st)"/>
-<rect x="8" y="52" width="44" height="4" fill="#8F98A6" opacity="0.55"/><rect x="8" y="84" width="44" height="4" fill="#8F98A6" opacity="0.55"/>
-<rect x="17" y="9" width="26" height="10" rx="3" fill="#8F98A6"/><rect x="26" y="4" width="8" height="6" rx="2" fill="#8F98A6"/>
-<path d="M10 36 C 0 34 0 46 9 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<path d="M50 36 C 60 34 60 46 51 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<rect x="15" y="34" width="5" height="58" rx="2.5" fill="#fff" opacity="0.65"/>
-</g><g transform="translate(164 70) scale(0.46)">
-<defs><linearGradient id="au2c3-st" x1="0" x2="1"><stop offset="0" stop-color="#EEF1F4"/><stop offset="0.45" stop-color="#C9CED6"/><stop offset="1" stop-color="#8F98A6"/></linearGradient></defs>
-<ellipse cx="30" cy="99" rx="28" ry="4" fill="#000" opacity="0.14"/>
-<path d="M8 40 L 8 92 Q 8 98 14 98 L 46 98 Q 52 98 52 92 L 52 40 Q 52 30 40 26 L 38 17 L 22 17 L 20 26 Q 8 30 8 40 Z" fill="url(#au2c3-st)"/>
-<rect x="8" y="52" width="44" height="4" fill="#8F98A6" opacity="0.55"/><rect x="8" y="84" width="44" height="4" fill="#8F98A6" opacity="0.55"/>
-<rect x="17" y="9" width="26" height="10" rx="3" fill="#8F98A6"/><rect x="26" y="4" width="8" height="6" rx="2" fill="#8F98A6"/>
-<path d="M10 36 C 0 34 0 46 9 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<path d="M50 36 C 60 34 60 46 51 46" fill="none" stroke="#8F98A6" stroke-width="3" stroke-linecap="round"/>
-<rect x="15" y="34" width="5" height="58" rx="2.5" fill="#fff" opacity="0.65"/>
-</g>
-</g><rect width="200" height="140" filter="url(#au2-gr)" opacity="0.22"/></g></svg></div><p class="who">Dairy co-operatives</p><q>Is the milk in our coolers safe to sell?</q><p>Monthly aflatoxin M1 checks of bulk milk, plus feed checks for members.</p></div>
-        <div class="aud"><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A feed mill with a silo and a lorry" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="au3-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="au3-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#au3-clip)"><rect width="200" height="140" fill="#F8EBD0"/><g transform="translate(4 4) scale(1.0)">
-<ellipse cx="96" cy="128" rx="94" ry="5" fill="#000" opacity="0.13"/>
-<rect x="12" y="34" width="40" height="92" fill="#C9CED6"/><path d="M12 34 L 32 12 L 52 34 Z" fill="#8F98A6"/>
-<rect x="12" y="34" width="10" height="92" fill="#fff" opacity="0.4"/>
-<path d="M12 60 H52 M12 86 H52 M12 112 H52" stroke="#8F98A6" stroke-width="1.5"/>
-<rect x="56" y="58" width="80" height="68" fill="#F3E6CF"/><path d="M52 60 L 96 34 L 140 60 Z" fill="#E5793B"/>
-<rect x="72" y="88" width="26" height="38" fill="#6B4A2E"/><rect x="108" y="76" width="18" height="16" fill="#BFD8E8"/>
-<rect x="140" y="80" width="44" height="30" rx="3" fill="#5BAE5F"/><rect x="140" y="80" width="44" height="7" rx="3" fill="#2D7A38"/>
-<rect x="132" y="92" width="16" height="18" rx="2" fill="#33358A"/><rect x="135" y="95" width="10" height="7" fill="#BFD8E8"/>
-<circle cx="146" cy="114" r="8" fill="#1E1F2E"/><circle cx="146" cy="114" r="3" fill="#9AA3B0"/>
-<circle cx="174" cy="114" r="8" fill="#1E1F2E"/><circle cx="174" cy="114" r="3" fill="#9AA3B0"/>
-</g><rect width="200" height="140" filter="url(#au3-gr)" opacity="0.22"/></g></svg></div><p class="who">Feed millers</p><q>Does this load meet spec before we pay?</q><p>Same-day protein and moisture on incoming loads, and aflatoxin screening.</p></div>
-        <div class="aud"><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="An agrovet shopfront with sacks of feed" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="au4-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="au4-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#au4-clip)"><rect width="200" height="140" fill="#F8E2D4"/><g transform="translate(8 4) scale(1.0)">
-<rect x="4" y="8" width="176" height="122" fill="#F3E6CF"/>
-<rect x="4" y="8" width="176" height="20" fill="#1C1D4A"/>
-<text x="92" y="22.5" text-anchor="middle" font-family="Lexend, Verdana, sans-serif" font-size="11" font-weight="600" fill="#FFFFFF" letter-spacing="2">AGROVET</text>
-<rect x="8" y="30" width="16" height="14" fill="#FFFFFF"/><rect x="24" y="30" width="16" height="14" fill="#5BAE5F"/><rect x="40" y="30" width="16" height="14" fill="#FFFFFF"/><rect x="56" y="30" width="16" height="14" fill="#5BAE5F"/><rect x="72" y="30" width="16" height="14" fill="#FFFFFF"/><rect x="88" y="30" width="16" height="14" fill="#5BAE5F"/><rect x="104" y="30" width="16" height="14" fill="#FFFFFF"/><rect x="120" y="30" width="16" height="14" fill="#5BAE5F"/><rect x="136" y="30" width="16" height="14" fill="#FFFFFF"/><rect x="152" y="30" width="16" height="14" fill="#5BAE5F"/><path d="M8 44 q8 12 16 0 Z" fill="#FFFFFF"/><path d="M24 44 q8 12 16 0 Z" fill="#5BAE5F"/><path d="M40 44 q8 12 16 0 Z" fill="#FFFFFF"/><path d="M56 44 q8 12 16 0 Z" fill="#5BAE5F"/><path d="M72 44 q8 12 16 0 Z" fill="#FFFFFF"/><path d="M88 44 q8 12 16 0 Z" fill="#5BAE5F"/><path d="M104 44 q8 12 16 0 Z" fill="#FFFFFF"/><path d="M120 44 q8 12 16 0 Z" fill="#5BAE5F"/><path d="M136 44 q8 12 16 0 Z" fill="#FFFFFF"/><path d="M152 44 q8 12 16 0 Z" fill="#5BAE5F"/>
-<rect x="18" y="62" width="44" height="68" fill="#6B4A2E"/><rect x="22" y="66" width="36" height="64" fill="#3E2C1E"/>
-<rect x="76" y="62" width="92" height="44" rx="2" fill="#BFD8E8"/><rect x="76" y="62" width="92" height="44" rx="2" fill="none" stroke="#6B4A2E" stroke-width="3"/>
-<g transform="translate(82 74) scale(0.36)"><path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#D9B98A"/><rect x="14" y="52" width="60" height="26" rx="3" fill="#5BAE5F"/></g>
-<g transform="translate(116 74) scale(0.36)"><path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#D9B98A"/><rect x="14" y="52" width="60" height="26" rx="3" fill="#E5793B"/></g>
-<rect x="148" y="70" width="14" height="30" rx="2" fill="#FFFFFF"/><rect x="150" y="73" width="10" height="4" fill="#5BAE5F"/><rect x="150" y="80" width="10" height="2" fill="#33358A"/><rect x="150" y="84" width="8" height="2" fill="#33358A"/>
-<rect x="74" y="110" width="96" height="20" fill="#E3D2B2"/>
-<g transform="translate(96 100) scale(0.3)"><path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#B8955F"/></g>
-<g transform="translate(124 100) scale(0.3)"><path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#D9B98A"/></g>
-</g><rect width="200" height="140" filter="url(#au4-gr)" opacity="0.22"/></g></svg></div><p class="who">Agrovets &amp; traders</p><q>Can I show customers my stock is safe?</q><p>Batch test reports, and earnings as a sample drop-off point.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/herd-720.jpg" width="720" height="540" alt="Dairy cows grazing at sunrise" loading="lazy" decoding="async"></div><p class="who">Dairy farmers</p><q>Is this feed safe, and is it what I paid for?</q><p>FeedSafe Combo, drop-off at your agrovet, results on WhatsApp in plain words.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/dairyplant-800.jpg" width="800" height="600" alt="Milk cooling tanks and cans in a dairy plant" loading="lazy" decoding="async"></div><p class="who">Dairy co-operatives</p><q>Is the milk in our coolers safe to sell?</q><p>Monthly aflatoxin M1 checks of bulk milk, plus feed checks for members.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/silos-800.jpg" width="800" height="600" alt="Aerial view of grain silos at a feed mill" loading="lazy" decoding="async"></div><p class="who">Feed millers</p><q>Does this load meet spec before we pay?</q><p>Same-day protein and moisture on incoming loads, and aflatoxin screening.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/vetshelf-745.jpg" width="745" height="559" alt="Veterinary medicines on an agrovet shelf" loading="lazy" decoding="async"></div><p class="who">Agrovets &amp; traders</p><q>Can I show customers my stock is safe?</q><p>Batch test reports, and earnings as a sample drop-off point.</p></div>
       </div>
     </div>
   </section>
