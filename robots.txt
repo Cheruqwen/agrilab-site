@@ -1,0 +1,4 @@
+# Testing copy: keep search engines out until the site moves to agrilabsolutions.com.
+# Then replace this file with:  User-agent: *  /  Disallow: /ops/
+User-agent: *
+Disallow: /
