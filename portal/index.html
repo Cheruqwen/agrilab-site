@@ -11,7 +11,7 @@
 <script>try { var t = localStorage.getItem('agrilab-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap"></noscript>
 <style>
 /* Client portal: one page per client group, built from the client's own reported results. */
 :root {
@@ -278,6 +278,18 @@ tr:last-child td { border-bottom: 0; }
       <div class="tiles">${tiles.map(t => `<div class="tile ${t.cls || ''}"><span class="k">${esc(t.k)}</span><span class="v">${t.v}</span><span class="s">${esc(t.s || '')}</span></div>`).join('')}</div>
     </div></section>`;
   }
+  // The client's monthly plan, if they have one: quota used this month and whether the fee is paid.
+  function planCard(d) {
+    const p = d.subscription; if (!p) return '';
+    const left = Math.max(0, Number(p.quota) - Number(p.usedThisMonth)); const paid = !!p.paidThrough && p.paidThrough >= p.month;
+    const ymText = ym => ym ? MONTHS[Number(ym.slice(5, 7)) - 1] + ' ' + ym.slice(0, 4) : '—';
+    return `<section class="wrap section"><div class="panel">
+      <div class="section-head"><h2>Your ${esc(p.plan)} plan</h2><span class="chip ${p.status === 'active' ? (paid ? 'good' : 'warn') : ''}">${p.status !== 'active' ? esc(p.status) : paid ? 'Paid to ' + ymText(p.paidThrough) : ymText(p.month) + ' fee due'}</span></div>
+      <div style="display:grid;gap:6px"><div class="meter"><span style="width:${Math.min(100, p.usedThisMonth / Math.max(1, p.quota) * 100)}%"></span></div>
+      <p><b>${p.usedThisMonth} of ${p.quota}</b> samples used this month · ${left} left. ${kes(p.fee)} a month${p.extraDiscount ? ', and ' + p.extraDiscount + '% off samples beyond the plan' : ''}.</p></div>
+      ${p.status === 'active' && !paid ? '<p class="note">Pay this month’s fee by M-Pesa so your samples are covered.</p>' : ''}
+    </div></section>`;
+  }
   function loyalty(d) {
     const l = d.loyalty, tiers = (d.tiers || []).slice().sort((a, b) => a.minSpend - b.minSpend);
     const nxt = l.next;
@@ -385,7 +397,7 @@ tr:last-child td { border-bottom: 0; }
       { k: 'Last result', v: done.length ? esc(fmtShort(done[0].reportedAt)) : '—', s: done.length ? elOf(done[0]) : 'no reports yet' }
     ]) + inProgress(d)
       + (gs.length ? `<section class="wrap section"><div class="section-head"><h2>Your feeds and silage</h2><span class="hint">Targets are a general guide; ask us for targets for your herd.</span></div><div class="grid">${cards}</div></section>` : '<section class="wrap section"><div class="panel"><p>Your results will appear here after your first report.</p></div></section>')
-      + compare + loyalty(d) + cta('<b>Not sure what to change?</b> Book a nutritional consultation with your next test.') + reportsList(d, { elLabel: 'Feed or silage' });
+      + compare + planCard(d) + loyalty(d) + cta('<b>Not sure what to change?</b> Book a nutritional consultation with your next test.') + reportsList(d, { elLabel: 'Feed or silage' });
   }
 
   // ---------- Aggregator: supplier quality ----------
@@ -427,7 +439,7 @@ tr:last-child td { border-bottom: 0; }
           <td>${esc(fmtShort(g.last.reportedAt))} ${g.lastSafe ? `<span class="chip ${SAFE_CLASS[g.lastSafe]}">${SAFE_LABEL[g.lastSafe]}</span>` : ''}</td></tr>`).join('') || '<tr><td colspan="7">No reports in the last 12 months.</td></tr>'}
         </tbody></table></div></section>
       <section class="wrap section"><div class="panel"><div class="section-head"><h2>Month by month</h2><span class="hint">last six months</span></div>${chart}</div></section>`
-      + loyalty(d) + cta('<b>Testing every delivery?</b> Ask us about a monthly plan with priority slots.') + reportsList(d, { elLabel: 'Supplier or member' });
+      + planCard(d) + loyalty(d) + cta('<b>Testing every delivery?</b> Ask us about a monthly plan with priority slots.') + reportsList(d, { elLabel: 'Supplier or member' });
   }
 
   // ---------- Consumer: food safety ----------
@@ -454,7 +466,7 @@ tr:last-child td { border-bottom: 0; }
       + inProgress(d)
       + (items.length ? `<section class="wrap section"><div class="section-head"><h2>Your food</h2><span class="hint">retest every ${every} days and with every new supplier</span></div><div class="grid">${cards}</div></section>` : '')
       + `<section class="wrap section"><div class="grid">${[['Store dry', 'Keep flour, maize and peanuts off the floor, in a dry, airy store.'], ['Test new suppliers', 'Test the first delivery from any new supplier before you serve it.'], ['Throw out mouldy food', 'Mould you can see means aflatoxin you can’t. Don’t sort it; discard it.']].map(([h, t]) => `<div class="panel"><h3>${h}</h3><p>${t}</p></div>`).join('')}</div></section>`
-      + loyalty(d) + cta('<b>Cooking for children or the public?</b> Test every delivery of maize, flour, peanuts and milk.') + reportsList(d, { elLabel: 'Food item' });
+      + planCard(d) + loyalty(d) + cta('<b>Cooking for children or the public?</b> Test every delivery of maize, flour, peanuts and milk.') + reportsList(d, { elLabel: 'Food item' });
   }
 
   // ---------- Importer or exporter: consignments ----------
@@ -481,7 +493,7 @@ tr:last-child td { border-bottom: 0; }
         <div class="panel"><h3>Before you ship or accept</h3><ul class="advice"><li class="good">Test every lot on arrival, before it is mixed with other stock.</li><li class="warn">Near the limit? Sort and retest before processing.</li><li class="bad">Not cleared? Keep the lot apart and call us about a retest.</li></ul></div>
       </div></section>`
       + (other.length ? reportsList({ samples: other }, { elLabel: 'Consignment' }) : '')
-      + loyalty(d) + cta('<b>New consignment arriving?</b> Book its aflatoxin test before it is unloaded.');
+      + planCard(d) + loyalty(d) + cta('<b>New consignment arriving?</b> Book its aflatoxin test before it is unloaded.');
   }
 
   // ---------- downloads ----------

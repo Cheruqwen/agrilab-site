@@ -13,46 +13,53 @@ var SHEETS = {
     'moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota', 'updatedAt', 'updatedBy',
     // Added later: kept at the end so existing sheets keep their columns in place.
     'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'batch', 'consult', 'consultFee', 'quoted',
-    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt', 'clientId', 'element'],
+    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt', 'clientId', 'element', 'subscriptionId'],
   Stock: ['id', 'item', 'lot', 'testsLeft', 'reorderAt', 'expiry', 'addedAt', 'updatedAt', 'updatedBy'],
   QC: ['date', 'nir', 'elisa', 'fridgeMin', 'fridgeMax', 'notes', 'by', 'at'],
   Staff: ['id', 'name', 'role', 'pin', 'active'],
   Visitors: ['id', 'at', 'name', 'phone', 'email', 'county', 'landmark', 'purpose', 'notes', 'source', 'by'],
   Clients: ['id', 'name', 'phone', 'email', 'type', 'segment', 'county', 'landmark', 'pin', 'portal', 'since', 'createdAt', 'updatedAt', 'updatedBy'],
-  Settings: ['key', 'value', 'updatedAt', 'updatedBy']
+  Settings: ['key', 'value', 'updatedAt', 'updatedBy'],
+  Subscriptions: ['id', 'clientId', 'plan', 'fee', 'quota', 'extraDiscount', 'status', 'start', 'paidThrough', 'notes', 'createdAt', 'updatedAt', 'updatedBy'],
+  SubPayments: ['id', 'subscriptionId', 'clientId', 'month', 'amount', 'mpesa', 'at', 'by']
 };
 var RESULT_FIELDS = ['moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota'];
 var TEST_CODES = ['NS-01', 'PR-01', 'OL-01', 'WC-01', 'SM-01', 'AF-01', 'AF-02', 'AM-01', 'FS-01', 'MY-01', 'MY-02', 'MY-03', 'MY-04', 'MP-01'];
 var STATUSES = ['received', 'analysis', 'review', 'ready', 'reported'];
-var ROLES = ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'];
+// Role titles are placeholders; the keys stay fixed. client_desk is the receptionist; field_officer is the rider.
+var ROLES = ['director', 'lab_manager', 'lab_technician', 'analyst', 'client_desk', 'nutritionist', 'sales_marketing', 'field_officer'];
 var SIGNERS = ['director', 'lab_manager'];
 // Who can do what. The staff page (ops/index.html) shows the same table; keep the two in step.
+// The lab technician covers reception and the bench until dedicated receptionists and analysts are hired.
 var PERMS = {
-  logSample: ['director', 'lab_manager', 'client_desk', 'field_officer'],
-  payment: ['director', 'lab_manager', 'client_desk'],
-  batch: ['director', 'lab_manager', 'analyst'],
-  results: ['director', 'lab_manager', 'analyst'],
+  logSample: ['director', 'lab_manager', 'lab_technician', 'client_desk', 'field_officer'],
+  payment: ['director', 'lab_manager', 'lab_technician', 'client_desk'],
+  batch: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+  results: ['director', 'lab_manager', 'lab_technician', 'analyst'],
   signOff: ['director', 'lab_manager'],
-  sendReport: ['director', 'lab_manager', 'client_desk'],
-  consult: ['director', 'lab_manager', 'client_desk'],
-  dispose: ['director', 'lab_manager', 'analyst'],
-  stock: ['director', 'lab_manager', 'analyst'],
-  qc: ['director', 'lab_manager', 'analyst'],
-  visitors: ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'],
+  sendReport: ['director', 'lab_manager', 'lab_technician', 'client_desk'],
+  consult: ['director', 'lab_manager', 'lab_technician', 'nutritionist'],
+  dispose: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+  stock: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+  qc: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+  closeout: ['director', 'lab_manager', 'lab_technician', 'client_desk'],
+  visitors: ['director', 'lab_manager', 'lab_technician', 'analyst', 'client_desk', 'nutritionist', 'sales_marketing', 'field_officer'],
   bigDiscount: ['director'],
-  clients: ['director', 'lab_manager', 'client_desk'],
-  loyalty: ['director']
+  clients: ['director', 'lab_manager', 'lab_technician', 'client_desk', 'sales_marketing'],
+  loyalty: ['director'],
+  subscriptions: ['director', 'sales_marketing'],
+  marketing: ['director', 'sales_marketing']
 };
 var PERM_TEXT = {
   logSample: 'log samples', payment: 'record payments', batch: 'start test batches', results: 'enter results',
   signOff: 'sign off or return results', sendReport: 'send reports', consult: 'mark consultations done', dispose: 'mark samples disposed',
-  stock: 'change kit stock', qc: 'log QC', visitors: 'sign in visitors', bigDiscount: 'approve discounts of 50% or more', clients: 'manage client accounts', loyalty: 'change loyalty discounts'
+  stock: 'change kit stock', qc: 'log QC', visitors: 'sign in visitors', bigDiscount: 'approve discounts of 50% or more', clients: 'manage client accounts', loyalty: 'change loyalty discounts', subscriptions: 'set up subscriptions', closeout: 'run the close-out', marketing: 'see marketing figures'
 };
 function need_(me, perm) {
   if ((PERMS[perm] || []).indexOf(me.role) < 0) fail_('forbidden', 'Your role can’t ' + PERM_TEXT[perm] + '.');
 }
 var BOOL = ['express', 'paid', 'consent', 'active', 'grinding', 'consult', 'portal'];
-var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax', 'consultFee', 'quoted'].concat(RESULT_FIELDS);
+var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax', 'consultFee', 'quoted', 'fee', 'quota', 'extraDiscount', 'amount'].concat(RESULT_FIELDS);
 var TZ = 'Africa/Nairobi';
 var SESSION_SECONDS = 21600; // 6 hours, the longest the script cache keeps a value
 var MAX_TRIES = 5;
@@ -142,6 +149,8 @@ function route_(req) {
     case 'clientLogin': return clientLogin_(req);
     case 'clientLogout': return clientLogout_(req);
     case 'clientData': return clientData_(req);
+    case 'saveSubscription': return saveSubscription_(req);
+    case 'paySubscription': return paySubscription_(req);
     default: fail_('bad_request', 'Unknown action.');
   }
 }
@@ -226,7 +235,8 @@ function data_(req) {
   var clients = [];
   try { clients = readRows_('Clients').map(publicClient_); } catch (x) { /* run setup() again */ }
   return { me: me, samples: samples.slice(0, 2000), stock: readRows_('Stock'), qc: qc.slice(0, 90), staff: staff,
-    visitors: visitors.slice(0, 500), clients: clients, settings: settings_(), serverTime: new Date().toISOString() };
+    visitors: visitors.slice(0, 500), clients: clients, settings: settings_(), subscriptions: safeRows_('Subscriptions'), subPayments: safeRows_('SubPayments'),
+    serverTime: new Date().toISOString() };
 }
 
 /* ------------------------------------------------------------------ samples */
@@ -235,7 +245,7 @@ function createSample_(req) {
   var me = session_(req);
   need_(me, 'logSample');
   var s = req.sample || {};
-  if (s.paid) need_(me, 'payment');
+  if (s.paid && !s.subscriptionId) need_(me, 'payment');
   if (Number(s.discount) >= 50) need_(me, 'bigDiscount');
   if (!String(s.clientName || '').trim()) fail_('invalid', 'Enter the client’s name.');
   var tests = Array.isArray(s.tests) ? s.tests : [];
@@ -258,6 +268,12 @@ function createSample_(req) {
     row.createdBy = me.id;
     row.clientId = linkClient_(s, me, now);
     row.element = clean_('element', s.element || '');
+    if (s.subscriptionId) {
+      // Covered by a monthly plan: free within the month's quota, so it counts as paid in full.
+      var cov = coverage_(String(s.subscriptionId), row.clientId, now);
+      if (!cov.ok) fail_('invalid', cov.why);
+      row.subscriptionId = cov.sub.id; row.price = 0; row.discount = 0; row.paid = true; row.mpesa = 'PLAN';
+    }
     row.disposeBy = new Date(now.getTime() + KEEP_DAYS * 864e5).toISOString();
     if (['dry', 'wet'].indexOf(row.sampleState) < 0) row.sampleState = '';
     if (row.paid) row.paidAt = row.receivedAt;
@@ -424,10 +440,11 @@ function saveSettings_(req) {
 }
 
 /** Spend (paid samples), number of paid samples and months as a client, and the tier they earn. */
-function loyalty_(client, samples, st) {
+function loyalty_(client, samples, st, subPays) {
   var now = Date.now(), from = st.period === 'all' ? 0 : now - 365 * 864e5;
   var paid = samples.filter(function (x) { return x.paid && new Date(x.receivedAt).getTime() >= from; });
-  var spend = paid.reduce(function (a, x) { return a + (Number(x.price) || 0); }, 0);
+  var spend = paid.reduce(function (a, x) { return a + (Number(x.price) || 0); }, 0)
+    + (subPays || []).filter(function (x) { return x.clientId === client.id && new Date(x.at).getTime() >= from; }).reduce(function (a, x) { return a + (Number(x.amount) || 0); }, 0);
   var first = samples.reduce(function (m, x) { return x.receivedAt && x.receivedAt < m ? x.receivedAt : m; }, client.since || new Date().toISOString());
   var months = Math.max(0, Math.floor((now - new Date(first).getTime()) / (30.44 * 864e5)));
   var tiers = st.tiers.slice().sort(function (a, b) { return a.minSpend - b.minSpend; });
@@ -435,6 +452,78 @@ function loyalty_(client, samples, st) {
   var tier = null; tiers.forEach(function (t) { if (ok(t)) tier = t; });
   var next = null; tiers.forEach(function (t) { if (!next && !ok(t) && (!tier || t.minSpend > tier.minSpend)) next = t; });
   return { spend: spend, tests: paid.length, months: months, since: first, period: st.period, tier: tier, next: next };
+}
+
+/* ------------------------------------------------------------------ subscriptions */
+
+function safeRows_(name) { try { return readRows_(name); } catch (x) { return []; } }
+function monthOf_(iso) { return iso ? Utilities.formatDate(new Date(iso), TZ, 'yyyy-MM') : ''; }
+function addMonth_(ym) { var y = Number(ym.slice(0, 4)), m = Number(ym.slice(5, 7)); m++; if (m > 12) { m = 1; y++; } return y + '-' + (m < 10 ? '0' : '') + m; }
+
+/** Whether a plan can cover one more sample this month: active, paid for this month, and quota left. */
+function coverage_(subId, clientId, now) {
+  var sub = safeRows_('Subscriptions').filter(function (x) { return x.id === subId; })[0];
+  if (!sub) return { ok: false, why: 'That subscription was not found.' };
+  if (clientId && sub.clientId !== clientId) return { ok: false, why: 'That subscription belongs to another client.' };
+  if (sub.status !== 'active') return { ok: false, why: 'That subscription is ' + sub.status + '.' };
+  var month = Utilities.formatDate(now, TZ, 'yyyy-MM');
+  if (!sub.paidThrough || sub.paidThrough < month) return { ok: false, why: 'This month’s subscription fee has not been paid yet.' };
+  var used = safeRows_('Samples').filter(function (x) { return x.subscriptionId === sub.id && monthOf_(x.receivedAt) === month; }).length;
+  if (used >= Number(sub.quota || 0)) return { ok: false, why: 'This month’s ' + sub.quota + ' included samples are used up.' };
+  return { ok: true, sub: sub };
+}
+
+function saveSubscription_(req) {
+  var me = session_(req); need_(me, 'subscriptions');
+  var x = req.subscription || {};
+  var now = new Date().toISOString();
+  var plan = String(x.plan || '').trim().slice(0, 60), fee = Number(x.fee), quota = Math.round(Number(x.quota)), extra = Number(x.extraDiscount || 0);
+  if (!plan) fail_('invalid', 'Name the plan.');
+  if (!(fee > 0)) fail_('invalid', 'Enter the monthly fee.');
+  if (!(quota >= 1)) fail_('invalid', 'Enter how many samples a month the plan includes.');
+  if (!(extra >= 0 && extra <= 30)) fail_('invalid', 'The discount on extra samples must be between 0% and 30%.');
+  var status = ['active', 'paused', 'cancelled'].indexOf(x.status) >= 0 ? x.status : 'active';
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    if (x.id) {
+      var idx = findIndex_('Subscriptions', 'id', String(x.id));
+      if (idx < 0) fail_('not_found', 'That subscription was not found.');
+      var cur = readRowAt_('Subscriptions', idx);
+      cur.plan = plan; cur.fee = fee; cur.quota = quota; cur.extraDiscount = extra; cur.status = status; cur.notes = String(x.notes || '').slice(0, 300);
+      cur.updatedAt = now; cur.updatedBy = me.id;
+      writeRowAt_('Subscriptions', idx, cur);
+      return { subscription: roundTrip_('Subscriptions', cur) };
+    }
+    var clientId = String(x.clientId || '');
+    if (!safeRows_('Clients').some(function (c) { return c.id === clientId; })) fail_('invalid', 'Choose the client.');
+    if (safeRows_('Subscriptions').some(function (o) { return o.clientId === clientId && o.status !== 'cancelled'; })) fail_('invalid', 'This client already has a subscription. Edit that one instead.');
+    var row = { id: 'P' + new Date().getTime(), clientId: clientId, plan: plan, fee: fee, quota: quota, extraDiscount: extra, status: status,
+      start: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), paidThrough: '', notes: String(x.notes || '').slice(0, 300), createdAt: now, updatedAt: now, updatedBy: me.id };
+    sheet_('Subscriptions').appendRow(toRow_('Subscriptions', row));
+    return { subscription: roundTrip_('Subscriptions', row) };
+  } finally { lock.releaseLock(); }
+}
+
+/** Records one month's fee: the plan is then paid through the next unpaid month. */
+function paySubscription_(req) {
+  var me = session_(req);
+  if (PERMS.payment.indexOf(me.role) < 0 && PERMS.subscriptions.indexOf(me.role) < 0) fail_('forbidden', 'Your role can’t record payments.');
+  var mpesa = String(req.mpesa || '').trim().toUpperCase();
+  if (!mpesa) fail_('invalid', 'Enter the M-Pesa code.');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var idx = findIndex_('Subscriptions', 'id', String(req.id || ''));
+    if (idx < 0) fail_('not_found', 'That subscription was not found.');
+    var cur = readRowAt_('Subscriptions', idx);
+    var month = Utilities.formatDate(new Date(), TZ, 'yyyy-MM');
+    var next = !cur.paidThrough || cur.paidThrough < month ? month : addMonth_(cur.paidThrough);
+    var amount = req.amount != null && req.amount !== '' ? Number(req.amount) : Number(cur.fee);
+    var pay = { id: 'SP' + new Date().getTime(), subscriptionId: cur.id, clientId: cur.clientId, month: next, amount: amount, mpesa: mpesa.slice(0, 40), at: new Date().toISOString(), by: me.id };
+    sheet_('SubPayments').appendRow(toRow_('SubPayments', pay));
+    cur.paidThrough = next; cur.updatedAt = pay.at; cur.updatedBy = me.id;
+    writeRowAt_('Subscriptions', idx, cur);
+    return { subscription: roundTrip_('Subscriptions', cur), payment: roundTrip_('SubPayments', pay) };
+  } finally { lock.releaseLock(); }
 }
 
 /* ------------------------------------------------------------------ client portal */
@@ -473,7 +562,15 @@ function clientData_(req) {
     if (x.status === 'reported') RESULT_FIELDS.forEach(function (f) { o[f] = x[f]; });
     return o;
   });
-  return { client: publicClient_(c), samples: out, loyalty: loyalty_(c, mine, st), tiers: st.tiers, retestDays: st.retestDays };
+  var pays = safeRows_('SubPayments');
+  var sub = safeRows_('Subscriptions').filter(function (x) { return x.clientId === id && x.status !== 'cancelled'; })[0] || null;
+  var subOut = null;
+  if (sub) {
+    var month = Utilities.formatDate(new Date(), TZ, 'yyyy-MM');
+    subOut = { plan: sub.plan, fee: sub.fee, quota: sub.quota, extraDiscount: sub.extraDiscount, status: sub.status, start: sub.start, paidThrough: sub.paidThrough,
+      usedThisMonth: mine.filter(function (x) { return x.subscriptionId === sub.id && monthOf_(x.receivedAt) === month; }).length, month: month };
+  }
+  return { client: publicClient_(c), samples: out, loyalty: loyalty_(c, mine, st, pays), tiers: st.tiers, retestDays: st.retestDays, subscription: subOut };
 }
 
 /* ------------------------------------------------------------------ batches and disposal */

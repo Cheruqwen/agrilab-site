@@ -23,13 +23,15 @@ In the **Staff** tab, add one row per person:
 | --- | --- |
 | id | Leave blank. It fills itself in. |
 | name | The name they will type to sign in, for example `Wanjiku` |
-| role | One of: `director`, `lab_manager`, `analyst`, `client_desk`, `field_officer` |
+| role | One of: `director`, `lab_manager`, `lab_technician`, `analyst`, `client_desk` (receptionist), `nutritionist`, `sales_marketing`, `field_officer` (rider) |
 | pin | A PIN of 4 to 8 digits that only they know |
 | active | `yes` (change it to `no` to remove someone's access) |
 
 - Change the Director's starting PIN, `change-me-2468`, before going live.
 - After each person's first sign-in, their PIN turns into a scrambled code in the sheet. That is normal. To reset a PIN, type a new one over the code.
 - Only the **lab manager** and the **Director** can sign off results, and never results they entered themselves.
+- The **lab technician** can do almost everything (reception, payments, batches, results, QC, stock, close-out) until receptionists and analysts are hired. **Sales & marketing** sees the Marketing dashboard and manages clients and subscriptions. The full table is on the staff sign-in page of the offline demo, and in `PERMS` in `apps-script/Code.gs`.
+- Each person lands on their department: Overview (Director), Reception (lab technician, receptionist, rider), Lab (lab manager, analyst) or Clients & sales (sales & marketing, nutrition consultant).
 - After 5 wrong PINs, that name is locked for 15 minutes.
 
 ## 3. Publish the script as a web app
@@ -62,7 +64,7 @@ In the **Staff** tab, add one row per person:
 
 Paste the new code, save, then go to **Deploy → Manage deployments → pencil icon → Version: New version → Deploy**. The URL stays the same, so `config.js` does not change.
 
-If the new code adds columns or tabs (the November 2026 updates did: batches, sample condition, county and landmark, consultations, disposal, farm elements, and the Visitors, Clients and Settings tabs), also choose **`setup`** in the toolbar and click **Run** once. It adds the new columns at the end of the Samples tab and creates the new tabs. Existing records are kept.
+If the new code adds columns or tabs (the November 2026 updates did: batches, sample condition, county and landmark, consultations, disposal, farm elements, subscriptions, and the Visitors, Clients, Settings, Subscriptions and SubPayments tabs), also choose **`setup`** in the toolbar and click **Run** once. It adds the new columns at the end of the Samples tab and creates the new tabs. Existing records are kept.
 
 Samples logged before the Clients tab existed are not linked to a client account, so they don't count towards loyalty tiers or show in the client portal.
 
@@ -76,5 +78,6 @@ Samples logged before the Clients tab existed are not linked to a client account
 - **Sample codes.** Each sample keeps its ID (for example `AGL-261126-004`) and also shows a code made of the date received, the date paid and the date tested: `R261126-P261126-T261127-004`. The paid and tested parts fill in as those steps happen.
 - **Disposal.** Every sample has a dispose-by date two weeks after it arrives. The Work plan lists samples due for disposal; mark them disposed once the bags are thrown away.
 - **Client portal.** Every new sample is linked to a client account by phone number (created automatically). On the Clients tab, the client desk, lab manager or Director gives a client portal access; the PIN is shown once, to send by WhatsApp. Clients sign in at `/portal/` with their phone number and PIN and see only their own reported results.
+- **Subscriptions.** Sales & marketing or the Director set up a monthly plan for a client (fee, samples included, discount on extra samples). Once a month's fee is recorded, samples within the quota are logged as covered by the plan at no charge. Plan fees count towards the client's loyalty spend.
 - **Loyalty discounts.** The Director sets the tiers on the Clients tab: minimum spend (over the last 12 months or all time), and optionally a minimum number of paid samples and months as a client. When a sample is logged for an existing client, their tier's discount is applied automatically.
 - **Example data.** On the sign-in page, "Explore with example data" shows the system filled with made-up samples. Nothing in that mode is saved.

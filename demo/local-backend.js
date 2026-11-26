@@ -14,12 +14,16 @@
     { name: 'Kenol Primary School', phone: '0711 100 003', pin: '3456', segment: 'consumer' },
     { name: 'Sunrise Peanut Butter Ltd', phone: '0711 100 004', pin: '4567', segment: 'trade' }
   ];
+  // Demo team. Titles are placeholders. "now" is today's team; "later" are planned hires.
   var USERS = [
-    { id: 'S1', name: 'Lawrence Maina', role: 'director', pin: '1111' },
-    { id: 'S2', name: 'Grace Wanjiru', role: 'lab_manager', pin: '2222' },
-    { id: 'S3', name: 'Peter Kamau', role: 'analyst', pin: '3333' },
-    { id: 'S4', name: 'Mary Njeri', role: 'client_desk', pin: '4444' },
-    { id: 'S5', name: 'John Mwangi', role: 'field_officer', pin: '5555' }
+    { id: 'S1', name: 'Lawrence Maina', role: 'director', pin: '1111', team: 'now' },
+    { id: 'S2', name: 'Mwangi', role: 'lab_manager', pin: '2222', team: 'now' },
+    { id: 'S3', name: 'Fidelia', role: 'lab_technician', pin: '3333', team: 'now' },
+    { id: 'S4', name: 'Alfred', role: 'sales_marketing', pin: '6666', team: 'now' },
+    { id: 'S5', name: 'Grace Wanjiru', role: 'nutritionist', pin: '8888', team: 'now' },
+    { id: 'S6', name: 'Brian Otieno', role: 'field_officer', pin: '5555', team: 'now' },
+    { id: 'S7', name: 'Mary Njeri', role: 'client_desk', pin: '4444', team: 'later' },
+    { id: 'S8', name: 'Peter Kamau', role: 'analyst', pin: '7777', team: 'later' }
   ];
 
   // ---------- storage ----------
@@ -123,7 +127,7 @@
       var pc = PORTAL_CLIENTS.filter(function (c) { return c.name === o.client; })[0];
       var id = 'C' + (++clientCount);
       var c = { id: id, name: o.client, phone: pc ? pc.phone : '0712 200 ' + ('00' + clientCount).slice(-3), email: '', type: o.ctype, segment: segmentOf_(o.ctype),
-        county: o.county, landmark: o.landmark, pin: pc ? hashPin_(pc.pin, id) : '', portal: !!pc, since: recIso, createdAt: recIso, updatedAt: recIso, updatedBy: 'S4' };
+        county: o.county, landmark: o.landmark, pin: pc ? hashPin_(pc.pin, id) : '', portal: !!pc, since: recIso, createdAt: recIso, updatedAt: recIso, updatedBy: 'S3' };
       sheet_('Clients').appendRow(toRow_('Clients', c));
       clientIds[o.client] = { id: id, phone: c.phone };
       return clientIds[o.client];
@@ -149,7 +153,7 @@
         consult: !!o.consult, consultFee: o.consult ? 500 : null,
         dueAt: new Date(rec.getTime() + (o.hours || 48) * H).toISOString(),
         disposeBy: new Date(rec.getTime() + 14 * 24 * H).toISOString(),
-        createdBy: o.by || 'S4', notes: '', updatedBy: 'S4'
+        createdBy: o.by || 'S3', notes: '', updatedBy: 'S3'
       };
       var cl = clientFor(o, rec.toISOString()); row.clientId = cl.id; row.clientPhone = cl.phone;
       if (o.paid) row.paidAt = iso(o.ago - 0.3);
@@ -168,8 +172,8 @@
     sample({ ago: 1, status: 'received', element: 'Dairy meal – Brand A', client: 'Kandara Dairy Farmer', ctype: 'Dairy farmer', county: 'Murang’a', landmark: 'Near Kandara market', stype: 'Dairy meal or concentrate', tests: ['FS-01'], price: 5000, paid: false, grind: true, consult: true });
     sample({ ago: 1.5, status: 'received', element: 'Lot MW-2611-03', client: 'Sunrise Peanut Butter Ltd', ctype: 'Peanut butter manufacturer or importer', county: 'Imported (outside Kenya)', landmark: 'Consignment at Thika warehouse', stype: 'Peanuts (groundnuts)', tests: ['OL-01', 'AF-01'], price: 4000, paid: true, grind: true, channel: 'Courier', heard: 'Google' });
     sample({ ago: 2, status: 'received', client: 'St. Mary’s Children’s Home', ctype: 'Children’s home', county: 'Kiambu', landmark: 'Opposite Gatundu hospital', stype: 'Flour', tests: ['AF-01'], price: 3000, paid: true, heard: 'Friend or neighbour' });
-    sample({ ago: 3, status: 'received', client: 'Gakoe Silage Farmer', ctype: 'Dairy farmer', county: 'Kiambu', landmark: 'Gakoe tea centre', stype: 'Silage', tests: ['SM-01'], price: 800, quoted: 800, paid: true, wet: true, grind: true, pack: 'Sealed plastic bag', hours: 48, by: 'S5', channel: 'Pickup' });
-    sample({ ago: 4, status: 'received', element: 'Maize grain – Supplier B', client: 'Kenol Primary School', ctype: 'School', county: 'Murang’a', landmark: 'Kenol town, behind the stage', stype: 'Maize or other grain', tests: ['AF-01'], price: 3000, paid: false, grind: true, by: 'S5', channel: 'Pickup' });
+    sample({ ago: 3, status: 'received', client: 'Gakoe Silage Farmer', ctype: 'Dairy farmer', county: 'Kiambu', landmark: 'Gakoe tea centre', stype: 'Silage', tests: ['SM-01'], price: 800, quoted: 800, paid: true, wet: true, grind: true, pack: 'Sealed plastic bag', hours: 48, by: 'S6', channel: 'Pickup' });
+    sample({ ago: 4, status: 'received', element: 'Maize grain – Supplier B', client: 'Kenol Primary School', ctype: 'School', county: 'Murang’a', landmark: 'Kenol town, behind the stage', stype: 'Maize or other grain', tests: ['AF-01'], price: 3000, paid: false, grind: true, by: 'S6', channel: 'Pickup' });
     sample({ ago: 5, element: 'Bulk cooler', status: 'analysis', batch: b(4), client: 'Githunguri Milk Co-operative', ctype: 'Milk co-operative', county: 'Kiambu', landmark: 'Githunguri cooler', stype: 'Raw milk', tests: ['AM-01'], price: 3000, paid: true, wet: true, pack: 'Bottle', channel: 'Pickup', heard: 'Co-operative' });
     sample({ ago: 6, status: 'analysis', batch: b(4), client: 'Thika Feeds Ltd', ctype: 'Feed miller', county: 'Kiambu', landmark: 'Thika industrial area', stype: 'Feed ingredient (bran, seed cake, soya, fishmeal)', tests: ['NS-01'], price: 2000, paid: true, grind: true, heard: 'Returning client' });
     sample({ ago: 20, status: 'review', batch: b(19), client: 'Mama Oliech Restaurant', ctype: 'Restaurant or caterer', county: 'Nairobi', landmark: 'Kilimani, Ring Road', stype: 'Maize or other grain', tests: ['AF-01'], price: 3000, paid: true, grind: true, results: { afb1: 7.4 }, heard: 'Facebook or TikTok' });
@@ -221,7 +225,23 @@
       hist(Object.assign({}, TRADE, { ago: (230 - i * 28) * 24 + 2, element: l[0], stype: 'Peanuts (groundnuts)', tests: ['AF-02', 'OL-01'], price: 5000, grind: true, results: { afb1: l[1], aft: l[2], fat: r1(46, 51) } }));
     });
 
+    // A miller who used to test regularly and stopped: shows on the Marketing win-back list.
+    var MILL = { client: 'Maragua Feed Millers', ctype: 'Feed miller', county: 'Murang’a', landmark: 'Maragua town', heard: 'Radio' };
+    [190, 160, 130, 100].forEach(function (d) { hist(Object.assign({}, MILL, { ago: d * 24, element: 'Incoming maize', stype: 'Maize or other grain', tests: ['FS-01'], price: 5000, grind: true, results: { moisture: r1(12, 14.5), protein: r1(8, 9.5), fat: r1(3.5, 4.5), fibre: r1(2, 3), ash: r1(1.2, 1.8), starch: r1(60, 68), afb1: r1(1, 6) } })); });
+
     var now = new Date().toISOString();
+    var ym = function (monthsAgo) { var d = new Date(t); d.setUTCDate(15); d.setUTCMonth(d.getUTCMonth() - monthsAgo); return Utilities.formatDate(d, '', 'yyyy-MM'); };
+    var plan = function (id, client, name, fee, quota, extra, monthsAgo, paidMonths) {
+      var cid = clientIds[client].id;
+      sheet_('Subscriptions').appendRow(toRow_('Subscriptions', { id: id, clientId: cid, plan: name, fee: fee, quota: quota, extraDiscount: extra, status: 'active',
+        start: ym(monthsAgo) + '-01', paidThrough: paidMonths.length ? ym(paidMonths[paidMonths.length - 1]) : '', notes: '', createdAt: iso(monthsAgo * 730), updatedAt: now, updatedBy: 'S4' }));
+      paidMonths.forEach(function (m, i) { sheet_('SubPayments').appendRow(toRow_('SubPayments', { id: id + '-' + i, subscriptionId: id, clientId: cid, month: ym(m), amount: fee, mpesa: 'DEMOPLAN' + i, at: iso(m * 730 + 48), by: 'S3' })); });
+    };
+    plan('P1', 'Githunguri Milk Co-operative', 'Standard', 45000, 20, 5, 3, [3, 2, 1, 0]);
+    plan('P2', 'Sunrise Peanut Butter Ltd', 'Starter', 25000, 10, 0, 2, [2, 1]);
+    // The co-op's samples this month were covered by its plan.
+    var H_ = SHEETS.Samples, ci = H_.indexOf('clientId'), ri = H_.indexOf('receivedAt'), si = H_.indexOf('subscriptionId'), pi = H_.indexOf('price'), mi = H_.indexOf('mpesa');
+    db.sheets.Samples.slice(1).forEach(function (r) { if (r[ci] === clientIds['Githunguri Milk Co-operative'].id && Utilities.formatDate(new Date(r[ri]), '', 'yyyy-MM') === ym(0)) { r[si] = 'P1'; r[pi] = '0'; r[mi] = 'PLAN'; } });
     [['K1', 'Aflatoxin B1 ELISA kit', 'AFB1-2611', 62, 40, 120], ['K2', 'Total aflatoxin ELISA kit', 'AFT-2610', 30, 40, 90], ['K3', 'Aflatoxin M1 ELISA kit', 'AFM1-2609', 80, 40, 20]]
       .forEach(function (k) { sheet_('Stock').appendRow(toRow_('Stock', { id: k[0], item: k[1], lot: k[2], testsLeft: k[3], reorderAt: k[4], expiry: Utilities.formatDate(new Date(t + k[5] * 24 * H), '', 'yyyy-MM-dd'), addedAt: now, updatedAt: now, updatedBy: 'S2' })); });
     var yday = Utilities.formatDate(new Date(t - 24 * H), '', 'yyyy-MM-dd');
@@ -229,7 +249,7 @@
     [[1, 'Kandara Dairy Farmer', 'Murang’a', 'Near Kandara market', 'Bringing a sample', 'Reception'],
      [3, 'Gakoe Silage Farmer', 'Kiambu', 'Gakoe tea centre', 'Nutritional consultation', 'Online'],
      [26, 'Sunrise Peanut Butter Ltd', 'Imported (outside Kenya)', 'Consignment at Thika warehouse', 'Enquiry', 'Reception']]
-      .forEach(function (v, i) { sheet_('Visitors').appendRow(toRow_('Visitors', { id: 'V' + (i + 1), at: iso(v[0]), name: v[1], phone: '0712 000 10' + i, email: '', county: v[2], landmark: v[3], purpose: v[4], notes: '', source: v[5], by: v[5] === 'Reception' ? 'S4' : '' })); });
+      .forEach(function (v, i) { sheet_('Visitors').appendRow(toRow_('Visitors', { id: 'V' + (i + 1), at: iso(v[0]), name: v[1], phone: clientIds[v[1]] ? clientIds[v[1]].phone : '0712 000 10' + i, email: '', county: v[2], landmark: v[3], purpose: v[4], notes: '', source: v[5], by: v[5] === 'Reception' ? 'S3' : '' })); });
     save();
   }
 
@@ -243,7 +263,7 @@
     return out;
   };
   window.AGRILAB_DEMO = {
-    users: USERS.map(function (u) { return { name: u.name, role: u.role, pin: u.pin }; }),
+    users: USERS.map(function (u) { return { name: u.name, role: u.role, pin: u.pin, team: u.team }; }),
     clients: PORTAL_CLIENTS.map(function (c) { return { name: c.name, phone: c.phone, pin: c.pin, segment: c.segment }; }),
     reset: function () { try { localStorage.removeItem(DB_KEY); localStorage.removeItem(CACHE_KEY); localStorage.removeItem('agrilab-ops-session'); localStorage.removeItem('agrilab-portal-session'); } catch (e) {} }
   };
