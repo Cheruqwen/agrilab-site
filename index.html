@@ -114,6 +114,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .also { margin-top: 18px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
 .also .aud { border-top: 4px solid var(--navy); }
 
+/* Price board */
+.price-groups { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.price-group { border-radius: var(--radius); padding: 22px 24px 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); }
+.pg-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 12px; border-bottom: 2px solid var(--band-green); }
+.price-group:nth-child(2) .pg-head { border-bottom-color: var(--band-orange); }
+.price-group:nth-child(3) .pg-head { border-bottom-color: #B4B7F5; }
+.pg-head h3 { font-size: 20px; }
+.pg-head span { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; color: var(--band-muted); }
+.price-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.10); }
+.price-row:last-child { border-bottom: 0; }
+.dark-section .price-row .name { color: #F4F6F0; font-size: 17px; font-weight: 500; line-height: 1.3; }
+.price-row .name small { display: block; font-size: 13.5px; font-weight: 400; color: var(--band-muted); margin-top: 2px; }
+.dark-section .price-row .kes { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 19px; font-weight: 500; color: #FFFFFF; white-space: nowrap; text-align: right; }
+.dark-section .price-row .kes.ask { color: var(--band-muted); font-size: 16px; }
+.price-row.featured { margin: 6px -12px; padding: 14px 12px; border-radius: 10px; background: rgba(124, 201, 127, 0.16); border-bottom: 0; }
+.dark-section .price-row.featured .kes { color: var(--band-green); }
+.dark-section .prices-note { color: var(--band-muted); margin-top: 20px; font-size: 15px; }
+
 /* Dark highlight sections: navy bands that break up the white page and mark key messages. */
 .dark-section { background: var(--band); color: var(--band-text); position: relative; isolation: isolate; overflow: hidden; }
 .dark-section::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background-image: radial-gradient(circle at 1px 1px, rgba(180, 183, 245, 0.10) 1px, transparent 1.6px); background-size: 22px 22px; -webkit-mask-image: radial-gradient(ellipse 70% 80% at 85% 10%, #000 10%, transparent 70%); mask-image: radial-gradient(ellipse 70% 80% at 85% 10%, #000 10%, transparent 70%); }
@@ -509,7 +527,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
         <div class="hero-copy">
           <p class="eyebrow">Feed &amp; milk testing lab · Kenol, Murang’a</p>
           <h1><span class="line"><span>Know before</span></span> <span class="line"><span class="accent">you feed.</span></span></h1>
-          <p class="lead">Find out what is really in your feed and food: protein, fat, moisture and aflatoxin. Fast results in plain words for farmers, milk co-operatives, feed millers, peanut processors, schools and kitchens, from our laboratory in the heart of Kenya’s dairy belt.</p>
+          <p class="lead">Protein, fat, moisture and aflatoxin results, in plain words. For farmers, co-ops, millers, food processors, schools and kitchens.</p>
           <p class="swahili">Pima kwanza, lisha baadaye.</p>
           <div class="cta-row">
             <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
@@ -566,14 +584,14 @@ html.js .reveal-zoom.in .photo { scale: 1; }
         <div class="section-head">
           <p class="eyebrow">Why test</p>
           <h2 id="problem-title">Aflatoxin is invisible. The losses aren’t.</h2>
-          <p class="lead">Aflatoxin is a poison made by moulds on maize and other feed ingredients. You cannot see, smell or taste it. Cows that eat it give less milk and pass it into that milk as aflatoxin M1.</p>
+          <p class="lead">A mould poison in maize and feed. You can’t see, smell or taste it. Cows that eat it give less milk, and pass it into the milk.</p>
         </div>
         <div class="plate" aria-hidden="true"><img class="photo" src="assets/img/plate-720.jpg" width="720" height="720" alt="" loading="lazy" decoding="async"></div>
       </div>
       <div class="facts">
-        <div class="fact"><b data-count="61" data-suffix="%">61%</b><p>of dairy feed samples from Kenyan feed manufacturers were above the 5 ppb aflatoxin B1 limit in an ILRI study.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
-        <div class="fact"><b data-count="25" data-suffix="%">25%</b><p>drop in milk yield has been recorded when dairy feed carries more than 120 ppb of aflatoxin B1.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
-        <div class="fact"><b data-count="64" data-suffix="%">64%</b><p>of animal feed samples in records from three major Kenyan labs were above Kenya’s total aflatoxin standard.</p><a href="https://research.slu.se/en/publications/mycotoxin-hazards-in-the-kenyan-food-and-feed-market-a-retrospect/" target="_blank" rel="noopener">Source: Kibugu et al., SLU</a></div>
+        <div class="fact"><b data-count="61" data-suffix="%">61%</b><p>of Kenyan dairy feed samples were above the aflatoxin B1 limit.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
+        <div class="fact"><b data-count="25" data-suffix="%">25%</b><p>less milk when feed carries over 120 ppb of aflatoxin B1.</p><a href="https://www.ilri.org/knowledge/publications/direct-market-costs-aflatoxins-kenyan-dairy-value-chain" target="_blank" rel="noopener">Source: ILRI</a></div>
+        <div class="fact"><b data-count="64" data-suffix="%">64%</b><p>of feed samples at three major Kenyan labs were over the legal limit.</p><a href="https://research.slu.se/en/publications/mycotoxin-hazards-in-the-kenyan-food-and-feed-market-a-retrospect/" target="_blank" rel="noopener">Source: Kibugu et al., SLU</a></div>
       </div>
     </div>
   </section>
@@ -598,9 +616,9 @@ html.js .reveal-zoom.in .photo { scale: 1; }
         </div>
       </div>
       <div class="story-text">
-        <p>AgriLab Solutions began on a dairy farm. Our cows were fed feed contaminated with aflatoxin. By the time we knew, they had already eaten it.</p>
-        <p>Most farmers never find out, because testing has been slow, far away and priced for big companies. So we built a lab in Kenol that answers the two questions every farmer and miller has: what is in this feed, and is it safe?</p>
-        <p>We are independent of any feed brand. Our only interest is an accurate answer for the person who brought the sample.</p>
+        <p>AgriLab began on a dairy farm. Our cows ate aflatoxin-contaminated feed, and we found out too late.</p>
+        <p>Testing was slow, far away and priced for big companies. So we built a lab in Kenol to answer two questions: what is in this feed, and is it safe?</p>
+        <p>We are independent of any feed brand.</p>
         <p class="closing">Test first. Then feed.</p>
       </div>
     </div>
@@ -611,70 +629,70 @@ html.js .reveal-zoom.in .photo { scale: 1; }
       <div class="section-head">
         <p class="eyebrow">What we test</p>
         <h2 id="services-title">Nutrition and safety, from one sample.</h2>
-        <p class="lead">A rapid near-infrared analyser reads a feed’s nutrition in seconds. An ELISA microplate reader measures toxins down to parts per billion.</p>
+        <p class="lead">Nutrition read in seconds by near-infrared. Toxins measured to parts per billion by ELISA.</p>
       </div>
       <div class="cards">
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/pellets-900.jpg" width="900" height="600" alt="Close-up of dairy feed pellets" loading="lazy" decoding="async"></div>
           <p class="code">NS-01 · Dry chemistry</p>
           <h3>NutriScan</h3>
-          <p>Is the feed what you paid for? Moisture, crude protein, fat, fibre, ash and starch, read in seconds by near-infrared.</p>
+          <p>Moisture, protein, fat, fibre, ash and starch.</p>
           <p class="price">KES 2,000 <small>· same day</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/beaker-800.jpg" width="800" height="600" alt="A laboratory beaker and pipette" loading="lazy" decoding="async"></div>
           <p class="code">WC-01 · Wet chemistry</p>
           <h3>Wet chemistry</h3>
-          <p>Classic laboratory methods for the full nutrition breakdown, when a buyer, regulator or dispute needs reference results.</p>
+          <p>Reference lab methods, for buyers, regulators or disputes.</p>
           <p class="price">KES 3,150–6,000 <small>· depends on the parameters</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/soybeans-800.jpg" width="800" height="600" alt="Soybeans, a protein ingredient in feed" loading="lazy" decoding="async"></div>
           <p class="code">PR-01 · OL-01</p>
           <h3>Protein or oil only</h3>
-          <p>Just the one number you need. Protein for feeds and ingredients; oil for peanuts, seeds and seed cakes.</p>
+          <p>Protein for feeds. Oil for peanuts and seeds.</p>
           <p class="price">Protein KES 500 · Oil KES 1,000 <small>· same day</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/trough-1000.jpg" width="1000" height="1000" alt="Chopped feed in a wooden trough" loading="lazy" decoding="async"></div>
           <p class="code">SM-01</p>
           <h3>Silage moisture</h3>
-          <p>Too wet and silage sours and rots; too dry and it moulds. Know the moisture before you open the next pit or bale.</p>
+          <p>Is your silage too wet or too dry to keep?</p>
           <p class="price">Ask for a price <small>· 48 hrs</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/sacks-900.jpg" width="900" height="600" alt="Sacks of feed in a farm store" loading="lazy" decoding="async"></div>
           <p class="code">AF-01</p>
           <h3>Aflatoxin</h3>
-          <p>Aflatoxin B1 or total aflatoxin in feed, grain, flour, peanuts and peanut butter, checked against the legal limit.</p>
+          <p>In feed, grain, flour, peanuts and peanut butter.</p>
           <p class="price">KES 3,000 <small>· 24–48 hrs</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/milk-900.jpg" width="900" height="600" alt="A bottle and a glass of fresh milk" loading="lazy" decoding="async"></div>
           <p class="code">AM-01</p>
           <h3>Aflatoxin in milk</h3>
-          <p>Aflatoxin M1 in raw or processed milk, against the East African and EU limits.</p>
+          <p>Aflatoxin M1 in raw or processed milk.</p>
           <p class="price">KES 3,000 <small>· 24–48 hrs</small></p>
         </article>
         <article class="card hero-card">
           <div class="ill-frame"><img class="photo" src="assets/img/friesian-900.jpg" width="900" height="600" alt="A Friesian dairy cow with ear tags in a pasture" loading="lazy" decoding="async"></div>
           <p class="code">FS-01 · Best for dairy farmers</p>
           <h3>FeedSafe Combo</h3>
-          <p>Dry chemistry and aflatoxin on the same feed sample. Know what is in it, and whether it is safe.</p>
+          <p>Nutrition and aflatoxin on one feed sample.</p>
           <p class="price">KES 5,000 <small>· 24–48 hrs</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/herd-720.jpg" width="720" height="540" alt="Dairy cows grazing at sunrise" loading="lazy" decoding="async"></div>
           <p class="code">Add-on</p>
           <h3>Nutritional consultation</h3>
-          <p>A nutritionist goes through your results with you and explains what to change in the ration. Add it to any test.</p>
+          <p>We explain your results and what to change in the ration.</p>
           <p class="price">Ask for a price <small>· by phone or at the lab</small></p>
         </article>
         <article class="card">
           <div class="ill-frame"><img class="photo" src="assets/img/calendar-900.jpg" width="900" height="600" alt="A calendar with dates marked by red pins" loading="lazy" decoding="async"></div>
           <p class="code">Monthly plans</p>
           <h3>For co-ops, millers and processors</h3>
-          <p>A monthly testing quota, priority slots and a trend report. Milk safety plans for co-ops, QC plans for mills and peanut processors.</p>
+          <p>A testing quota, priority slots and a monthly trend report.</p>
           <p class="price">From KES 25,000 <small>· per month, paid in advance</small></p>
         </article>
       </div>
@@ -686,30 +704,30 @@ html.js .reveal-zoom.in .photo { scale: 1; }
       <div class="section-head">
         <p class="eyebrow">What your results mean</p>
         <h2 id="meaning-title">Three numbers that decide how your animals do.</h2>
-        <p class="lead">Every report comes with the numbers and what they mean in plain words. Here is the short version.</p>
+        <p class="lead">Every report explains the numbers in plain words.</p>
       </div>
       <div class="meanings">
         <div class="meaning">
           <p class="k">Protein</p>
           <h3>Builds weight, eggs, milk and meat.</h3>
-          <p>Protein is what animals use to grow and to produce. When feed is short of protein:</p>
-          <ul><li>animals put on weight slowly</li><li>hens lay fewer, smaller eggs with weaker shells</li><li>cows give less milk</li><li>meat is leaner and lower in quality</li></ul>
+          <p>Too little protein means:</p>
+          <ul><li>slow weight gain</li><li>fewer, smaller eggs with weak shells</li><li>less milk</li><li>poorer meat</li></ul>
         </div>
         <div class="meaning">
           <p class="k">Fat (oil)</p>
           <h3>Gives energy, but too much harms health.</h3>
-          <p>A little fat gives animals energy and a good coat. Too much fat upsets the stomach:</p>
-          <ul><li>animals get loose stool (diarrhoea)</li><li>they eat less and lose condition</li><li>fatty feed goes rancid faster in storage</li></ul>
+          <p>Too much fat means:</p>
+          <ul><li>loose stool (diarrhoea)</li><li>poor appetite and weight loss</li><li>feed that goes rancid</li></ul>
         </div>
         <div class="meaning">
           <p class="k">Moisture</p>
           <h3>Decides whether feed and silage keep.</h3>
-          <p>Moisture tells you how much of what you bought is water, and how long it will keep:</p>
-          <ul><li>wet feed and grain grow mould, and mould brings aflatoxin</li><li>silage that is too wet sours and rots</li><li>silage that is too dry moulds and animals eat less of it</li></ul>
+          <p>The wrong moisture means:</p>
+          <ul><li>mould in wet feed, which brings aflatoxin</li><li>wet silage that sours and rots</li><li>dry silage that moulds</li></ul>
         </div>
       </div>
       <div class="consult-strip">
-        <p><b>Not sure what your numbers mean for your herd or flock?</b> Add a nutritional consultation to any test. We go through the results with you and explain what to change in the ration.</p>
+        <p><b>Need help with your numbers?</b> Add a nutritional consultation to any test.</p>
         <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20a%20nutritional%20consultation." target="_blank" rel="noopener">Ask about a consultation</a>
       </div>
     </div>
@@ -733,7 +751,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 <rect x="14" y="53" width="30" height="6.5" rx="3.2" fill="#2D7A38"/><text x="29" y="57.9" text-anchor="middle" font-family="IBM Plex Sans, Arial, sans-serif" font-size="4.4" fill="#fff">Booked</text>
 <rect x="18" y="68" width="36" height="12" rx="5" fill="#D6F5C8"/><rect x="22" y="72" width="22" height="3.5" rx="1.7" fill="#7FA37A"/>
 <rect x="24" y="112" width="16" height="2.5" rx="1.2" fill="#4A4B78"/>
-</g><rect width="200" height="140" filter="url(#st1-gr)" opacity="0.22"/></g></svg></div><h3>Book</h3><p>WhatsApp or call 0701 321 020 and tell us what you want tested.</p></li>
+</g><rect width="200" height="140" filter="url(#st1-gr)" opacity="0.22"/></g></svg></div><h3>Book</h3><p>WhatsApp or call 0701 321 020.</p></li>
         <li><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A scoop taking feed from a sack" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="st2-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="st2-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#st2-clip)"><rect width="200" height="140" fill="#F8EBD0"/><g transform="translate(40 16) scale(0.92)">
 <ellipse cx="44" cy="120" rx="42" ry="5" fill="#000" opacity="0.14"/>
 <path d="M12 22 Q 4 72 10 112 Q 44 122 78 112 Q 84 72 76 22 Q 44 15 12 22 Z" fill="#D9B98A"/>
@@ -743,7 +761,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 <rect x="14" y="52" width="60" height="26" rx="3" fill="#5BAE5F"/>
 <text x="44" y="69" text-anchor="middle" font-family="Lexend, Verdana, sans-serif" font-size="8.5" font-weight="600" fill="#fff" letter-spacing="0.5">DAIRY MEAL</text>
 <path d="M20 36 L 70 36 M20 92 L 70 92 M20 100 L 70 100" stroke="#B8955F" stroke-width="1.2" opacity="0.45"/>
-</g><g transform="translate(112 34) rotate(18)"><rect x="0" y="0" width="10" height="44" rx="4" fill="#33358A"/><path d="M-12 40 L 22 40 L 18 62 Q 5 70 -8 62 Z" fill="#C9CED6"/><ellipse cx="5" cy="41" rx="17" ry="5" fill="#D9B98A"/></g><rect width="200" height="140" filter="url(#st2-gr)" opacity="0.22"/></g></svg></div><h3>Sample</h3><p>Take a mixed sample as shown below. Pack it in a clean brown paper (khaki) bag, like a chemist’s bag, and write your name, phone and date on it.</p></li>
+</g><g transform="translate(112 34) rotate(18)"><rect x="0" y="0" width="10" height="44" rx="4" fill="#33358A"/><path d="M-12 40 L 22 40 L 18 62 Q 5 70 -8 62 Z" fill="#C9CED6"/><ellipse cx="5" cy="41" rx="17" ry="5" fill="#D9B98A"/></g><rect width="200" height="140" filter="url(#st2-gr)" opacity="0.22"/></g></svg></div><h3>Sample</h3><p>Mix a sample as shown below. Pack it in a brown khaki bag with your name and phone.</p></li>
         <li><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A motorbike carrying a sample box" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="st3-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="st3-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#st3-clip)"><rect width="200" height="140" fill="#E2E3F6"/><g transform="translate(20 26) scale(1.0)">
 <ellipse cx="80" cy="104" rx="78" ry="5" fill="#000" opacity="0.14"/>
 <circle cx="30" cy="80" r="22" fill="#1E1F2E"/><circle cx="30" cy="80" r="11" fill="#9AA3B0"/><circle cx="30" cy="80" r="4" fill="#1E1F2E"/>
@@ -759,7 +777,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 <rect x="6" y="20" width="44" height="8" rx="4" fill="#5BAE5F"/>
 <text x="28" y="44" text-anchor="middle" font-family="Lexend, Verdana, sans-serif" font-size="8.5" font-weight="600" fill="#fff">AgriLab</text>
 <path d="M44 54 L 56 54" stroke="#8F98A6" stroke-width="4"/>
-</g><rect width="200" height="140" filter="url(#st3-gr)" opacity="0.22"/></g></svg></div><h3>Deliver</h3><p>Bring it to the lab, leave it at a partner agrovet, or ask for pickup around Kenol.</p></li>
+</g><rect width="200" height="140" filter="url(#st3-gr)" opacity="0.22"/></g></svg></div><h3>Deliver</h3><p>Bring it to the lab or an agrovet, or ask for pickup.</p></li>
         <li><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A phone showing an M-Pesa payment" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="st4-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="st4-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#st4-clip)"><rect width="200" height="140" fill="#DCEBD8"/><g transform="translate(68 12) scale(1.0)">
 <rect x="2" y="4" width="64" height="118" rx="12" fill="#000" opacity="0.14"/>
 <rect x="0" y="0" width="64" height="118" rx="12" fill="#1C1D4A"/>
@@ -771,8 +789,8 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 <rect x="14" y="53" width="30" height="6.5" rx="3.2" fill="#2D7A38"/><text x="29" y="57.9" text-anchor="middle" font-family="IBM Plex Sans, Arial, sans-serif" font-size="4.4" fill="#fff">Confirmed</text>
 <rect x="18" y="68" width="36" height="12" rx="5" fill="#D6F5C8"/><rect x="22" y="72" width="22" height="3.5" rx="1.7" fill="#7FA37A"/>
 <rect x="24" y="112" width="16" height="2.5" rx="1.2" fill="#4A4B78"/>
-</g><rect width="200" height="140" filter="url(#st4-gr)" opacity="0.22"/></g></svg></div><h3>Pay</h3><p>Pay in full by M-Pesa when we log your sample. Testing starts once payment is in. You get a sample code by SMS or WhatsApp.</p></li>
-        <li><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A test report with a within-limit verdict" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="st5-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="st5-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#st5-clip)"><rect width="200" height="140" fill="#F8E2D4"/><g transform="translate(62 14)"><rect x="3" y="5" width="76" height="104" rx="6" fill="#000" opacity="0.12"/><rect width="76" height="104" rx="6" fill="#FFFFFF"/><rect x="10" y="12" width="38" height="5" rx="2.5" fill="#1C1D4A"/><rect x="10" y="28" width="56" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="39" width="49" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="50" width="42" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="61" width="55" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="72" width="48" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="84" width="44" height="10" rx="5" fill="#2D7A38"/></g><g transform="translate(130 62) scale(0.62)"><path d="M30 2 L 56 12 L 56 34 C 56 52 44 64 30 70 C 16 64 4 52 4 34 L 4 12 Z" fill="#2D7A38"/><path d="M18 36 L 27 45 L 44 26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g><rect width="200" height="140" filter="url(#st5-gr)" opacity="0.22"/></g></svg></div><h3>Get results</h3><p>Your report arrives on WhatsApp and email, in plain words, with the legal limit and what to do next.</p></li>
+</g><rect width="200" height="140" filter="url(#st4-gr)" opacity="0.22"/></g></svg></div><h3>Pay</h3><p>Pay in full by M-Pesa. Testing starts once paid.</p></li>
+        <li><div class="ill-frame"><svg class="ill" viewBox="0 0 200 140" role="img" aria-label="A test report with a within-limit verdict" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="st5-clip"><rect width="200" height="140" rx="0"/></clipPath><filter id="st5-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#st5-clip)"><rect width="200" height="140" fill="#F8E2D4"/><g transform="translate(62 14)"><rect x="3" y="5" width="76" height="104" rx="6" fill="#000" opacity="0.12"/><rect width="76" height="104" rx="6" fill="#FFFFFF"/><rect x="10" y="12" width="38" height="5" rx="2.5" fill="#1C1D4A"/><rect x="10" y="28" width="56" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="39" width="49" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="50" width="42" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="61" width="55" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="72" width="48" height="3.5" rx="1.7" fill="#C9CDE6"/><rect x="10" y="84" width="44" height="10" rx="5" fill="#2D7A38"/></g><g transform="translate(130 62) scale(0.62)"><path d="M30 2 L 56 12 L 56 34 C 56 52 44 64 30 70 C 16 64 4 52 4 34 L 4 12 Z" fill="#2D7A38"/><path d="M18 36 L 27 45 L 44 26" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g><rect width="200" height="140" filter="url(#st5-gr)" opacity="0.22"/></g></svg></div><h3>Get results</h3><p>On WhatsApp and email, in plain words.</p></li>
       </ol>
 
       <div class="sampling">
@@ -780,24 +798,24 @@ html.js .reveal-zoom.in .photo { scale: 1; }
           <div class="ill-frame"><img class="photo" src="assets/img/soybeans-800.jpg" width="800" height="600" alt="Soybeans, a protein ingredient in dairy feed" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Feed for nutrition tests</p>
           <p class="qty">500 g</p>
-          <ol><li>Take scoops from the top, middle and bottom of the sack.</li><li>Mix them on a clean, dry surface.</li><li>Fill a clean, dry brown paper (khaki) bag and fold it shut.</li></ol>
+          <ol><li>Scoop from the top, middle and bottom of the sack.</li><li>Mix on a clean, dry surface.</li><li>Fill a khaki paper bag; fold it shut.</li></ol>
         </div>
         <div class="sample-card">
           <div class="ill-frame"><img class="photo" src="assets/img/flourbag-800.jpg" width="800" height="600" alt="A cloth sample bag full of maize flour beside a sieve" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Feed, grain, flour or peanuts for aflatoxin</p>
           <p class="qty">1 kg</p>
-          <ol><li>Take at least five scoops from different places.</li><li>Mix well. Aflatoxin hides in pockets.</li><li>Put 1 kg in a khaki paper bag; keep it dry and out of the sun.</li></ol>
+          <ol><li>Take five or more scoops from different spots.</li><li>Mix well: aflatoxin hides in pockets.</li><li>Bag 1 kg; keep it dry and shaded.</li></ol>
         </div>
         <div class="sample-card">
           <div class="ill-frame"><img class="photo" src="assets/img/trough-1000.jpg" width="1000" height="1000" alt="Chopped feed in a wooden trough" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Silage for moisture</p>
           <p class="qty">500 g</p>
-          <ol><li>Take handfuls from several places in the pit or bale, not just the surface.</li><li>Seal it in a plastic bag and press the air out, so it does not dry out.</li><li>Keep it cool and bring it the same day.</li></ol>
+          <ol><li>Take handfuls from several spots.</li><li>Seal in a plastic bag, air pressed out.</li><li>Bring it the same day.</li></ol>
         <div class="sample-card">
           <div class="ill-frame"><img class="photo" src="assets/img/beaker-800.jpg" width="800" height="600" alt="Milk in a 100 ml laboratory beaker with a pipette" loading="lazy" decoding="async"></div>
           <p class="eyebrow">Milk for aflatoxin M1</p>
           <p class="qty">100 ml</p>
-          <ol><li>Stir the milk so the cream is mixed in.</li><li>Fill a clean bottle and close it tightly.</li><li>Keep it cool; deliver within 24 hours.</li></ol>
+          <ol><li>Stir so the cream is mixed in.</li><li>Fill a clean bottle; close it tightly.</li><li>Keep cool; deliver within 24 hours.</li></ol>
         </div>
       </div>
     </div>
@@ -807,64 +825,70 @@ html.js .reveal-zoom.in .photo { scale: 1; }
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Who we serve</p>
-        <h2 id="who-title">Built for the people who feed Kenya’s herds, and Kenya’s children.</h2>
+        <h2 id="who-title">For everyone who feeds animals or people.</h2>
       </div>
       <div class="audiences">
-        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/herd-720.jpg" width="720" height="540" alt="Dairy cows grazing at sunrise" loading="lazy" decoding="async"></div><p class="who">Dairy farmers</p><q>Is this feed safe, and is it what I paid for?</q><p>FeedSafe Combo, drop-off at your agrovet, results on WhatsApp in plain words.</p></div>
-        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/dairyplant-800.jpg" width="800" height="600" alt="Milk cooling tanks and cans in a dairy plant" loading="lazy" decoding="async"></div><p class="who">Milk co-operatives</p><q>Is the milk in our coolers safe to sell?</q><p>Aflatoxin M1 checks of bulk milk, plus feed and silage checks for members.</p></div>
-        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/silos-800.jpg" width="800" height="600" alt="Aerial view of grain silos at a feed mill" loading="lazy" decoding="async"></div><p class="who">Feed millers</p><q>Does this load meet spec before we pay?</q><p>Same-day protein and moisture on incoming loads, and aflatoxin screening.</p></div>
-        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/vetshelf-745.jpg" width="745" height="559" alt="Veterinary medicines on an agrovet shelf" loading="lazy" decoding="async"></div><p class="who">Agrovets &amp; traders</p><q>Can I show customers my stock is safe?</q><p>Batch test reports, and earnings as a sample drop-off point.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/herd-720.jpg" width="720" height="540" alt="Dairy cows grazing at sunrise" loading="lazy" decoding="async"></div><p class="who">Dairy farmers</p><q>Is this feed safe, and is it what I paid for?</q><p>FeedSafe Combo, agrovet drop-off, results on WhatsApp.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/dairyplant-800.jpg" width="800" height="600" alt="Milk cooling tanks and cans in a dairy plant" loading="lazy" decoding="async"></div><p class="who">Milk co-operatives</p><q>Is the milk in our coolers safe to sell?</q><p>M1 checks on bulk milk; feed and silage checks for members.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/silos-800.jpg" width="800" height="600" alt="Aerial view of grain silos at a feed mill" loading="lazy" decoding="async"></div><p class="who">Feed millers</p><q>Does this load meet spec before we pay?</q><p>Same-day protein and moisture on incoming loads.</p></div>
+        <div class="aud"><div class="ill-frame"><img class="photo" src="assets/img/vetshelf-745.jpg" width="745" height="559" alt="Veterinary medicines on an agrovet shelf" loading="lazy" decoding="async"></div><p class="who">Agrovets &amp; traders</p><q>Can I show customers my stock is safe?</q><p>Reports for your stock; earn as a drop-off point.</p></div>
       </div>
       <div class="also">
-        <div class="aud"><p class="who">Peanut butter makers</p><q>Is this shipment of imported peanuts safe to grind?</q><p>Aflatoxin and oil content on every consignment before it goes into production.</p></div>
-        <div class="aud"><p class="who">Children’s homes &amp; schools</p><q>Is the flour, maize and milk we serve safe?</q><p>Aflatoxin checks on the food you buy in bulk, so children eat safely.</p></div>
-        <div class="aud"><p class="who">Restaurants &amp; caterers</p><q>Can we trust our suppliers?</q><p>Spot checks on flour, maize, peanuts and milk from new and regular suppliers.</p></div>
+        <div class="aud"><p class="who">Peanut butter makers</p><q>Is this shipment of imported peanuts safe to grind?</q><p>Aflatoxin and oil on every consignment.</p></div>
+        <div class="aud"><p class="who">Children’s homes &amp; schools</p><q>Is the flour, maize and milk we serve safe?</q><p>Aflatoxin checks on bulk flour, maize and milk.</p></div>
+        <div class="aud"><p class="who">Restaurants &amp; caterers</p><q>Can we trust our suppliers?</q><p>Spot checks on what suppliers deliver.</p></div>
       </div>
     </div>
   </section>
 
-  <section class="section dark-section" aria-labelledby="why-title">
+  <section class="section" aria-labelledby="why-title">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Why AgriLab</p>
-        <h2 id="why-title">Fast. Accurate. Trusted. Here’s the proof.</h2>
+        <h2 id="why-title">Fast. Accurate. Trusted.</h2>
       </div>
       <div class="pillars">
-        <div class="pillar"><p class="word">Fast</p><h3>Results while they still matter.</h3><ul><li>Nutrition results the same day for samples in by noon</li><li>Aflatoxin results within 24 to 48 hours</li><li>Reports by WhatsApp and email</li></ul></div>
-        <div class="pillar"><p class="word">Accurate</p><h3>Numbers you can act on.</h3><ul><li>Method, units and legal limit on every report</li><li>Tested in batches of up to 96, with control samples in every batch</li><li>Two sign-offs on every result</li></ul></div>
-        <div class="pillar"><p class="word">Trusted</p><h3>On the farmer’s side.</h3><ul><li>Farmer-founded, independent of any feed brand</li><li>Your results are confidential</li><li>Samples kept no longer than two weeks, then safely disposed of</li><li>Working towards KENAS ISO/IEC 17025 accreditation</li></ul></div>
+        <div class="pillar"><p class="word">Fast</p><h3>Results while they still matter.</h3><ul><li>Nutrition results the same day</li><li>Aflatoxin in 24–48 hours</li><li>Reports on WhatsApp and email</li></ul></div>
+        <div class="pillar"><p class="word">Accurate</p><h3>Numbers you can act on.</h3><ul><li>Method and legal limit on every report</li><li>Control samples in every batch</li><li>Two sign-offs on every result</li></ul></div>
+        <div class="pillar"><p class="word">Trusted</p><h3>On the farmer’s side.</h3><ul><li>Farmer-founded and independent</li><li>Confidential results</li><li>Samples disposed of within two weeks</li><li>Working towards ISO/IEC 17025</li></ul></div>
       </div>
     </div>
   </section>
 
-  <section class="section" id="prices" aria-labelledby="prices-title" style="background: var(--surface-2);">
+  <section class="section dark-section" id="prices" aria-labelledby="prices-title">
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">Prices</p>
         <h2 id="prices-title">Clear prices, per sample.</h2>
-        <p class="lead">All prices in Kenya shillings, including VAT. Tests are paid for in full, by M-Pesa, before testing starts.</p>
+        <p class="lead">Kenya shillings, VAT included. Pay in full by M-Pesa before testing.</p>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Code</th><th>Test</th><th>Turnaround</th><th>Sample</th><th class="num">KES</th></tr></thead>
-          <tbody>
-            <tr><td class="mono">NS-01</td><td>Dry chemistry (NutriScan): moisture, protein, fat, fibre, ash, starch</td><td>Same day*</td><td>500 g</td><td class="num">2,000</td></tr>
-            <tr><td class="mono">WC-01</td><td>Wet chemistry: full nutrition breakdown by reference methods</td><td>Up to 3 days</td><td>500 g</td><td class="num">3,150–6,000</td></tr>
-            <tr><td class="mono">PR-01</td><td>Protein only</td><td>Same day*</td><td>500 g</td><td class="num">500</td></tr>
-            <tr><td class="mono">OL-01</td><td>Oil (fat) only, e.g. peanuts and seeds</td><td>Same day*</td><td>500 g</td><td class="num">1,000</td></tr>
-            <tr><td class="mono">SM-01</td><td>Silage moisture</td><td>48 hrs</td><td>500 g, sealed</td><td class="num">Ask</td></tr>
-            <tr><td class="mono">AF-01</td><td>Aflatoxin: B1 or total aflatoxin</td><td>24–48 hrs</td><td>1 kg</td><td class="num">3,000</td></tr>
-            <tr><td class="mono">AF-02</td><td>Aflatoxin: B1 and total aflatoxin</td><td>24–48 hrs</td><td>1 kg</td><td class="num">4,000</td></tr>
-            <tr><td class="mono">AM-01</td><td>Aflatoxin M1 in milk</td><td>24–48 hrs</td><td>100 ml</td><td class="num">3,000</td></tr>
-            <tr class="highlight"><td class="mono">FS-01</td><td><b>FeedSafe Combo:</b> dry chemistry + aflatoxin</td><td>24–48 hrs</td><td>1 kg</td><td class="num"><b>5,000</b></td></tr>
-            <tr><td class="mono">MY-01–04</td><td>Fumonisin, DON, zearalenone or ochratoxin A (each)</td><td>48 hrs</td><td>1 kg</td><td class="num">2,500</td></tr>
-            <tr><td class="mono">MP-01</td><td>Mycotoxin panel: total aflatoxin + three others</td><td>48–72 hrs</td><td>1 kg</td><td class="num">8,000</td></tr>
-            <tr><td class="mono">EX-01</td><td>Express aflatoxin, same working day</td><td>Same day**</td><td>as above</td><td class="num">+50%</td></tr>
-            <tr><td class="mono">Add-on</td><td>Nutritional consultation: we explain your results and what to change</td><td>After results</td><td>—</td><td class="num">Ask</td></tr>
-          </tbody>
-        </table>
+      <div class="price-groups">
+        <div class="price-group">
+          <div class="pg-head"><h3>Nutrition</h3><span>KES</span></div>
+          <div class="price-row"><span class="name">Dry chemistry (NutriScan)<small>Same day</small></span><span class="kes">2,000</span></div>
+          <div class="price-row"><span class="name">Wet chemistry<small>Up to 3 days</small></span><span class="kes">3,150–6,000</span></div>
+          <div class="price-row"><span class="name">Protein only<small>Same day</small></span><span class="kes">500</span></div>
+          <div class="price-row"><span class="name">Oil only<small>Same day</small></span><span class="kes">1,000</span></div>
+          <div class="price-row"><span class="name">Silage moisture<small>48 hours</small></span><span class="kes ask">Ask</span></div>
+        </div>
+        <div class="price-group">
+          <div class="pg-head"><h3>Safety</h3><span>KES</span></div>
+          <div class="price-row"><span class="name">Aflatoxin, B1 or total<small>24–48 hours</small></span><span class="kes">3,000</span></div>
+          <div class="price-row"><span class="name">Aflatoxin, B1 and total<small>24–48 hours</small></span><span class="kes">4,000</span></div>
+          <div class="price-row"><span class="name">Aflatoxin M1 in milk<small>24–48 hours</small></span><span class="kes">3,000</span></div>
+          <div class="price-row"><span class="name">Other mycotoxins, each<small>48 hours</small></span><span class="kes">2,500</span></div>
+          <div class="price-row"><span class="name">Mycotoxin panel<small>48–72 hours</small></span><span class="kes">8,000</span></div>
+        </div>
+        <div class="price-group">
+          <div class="pg-head"><h3>Combos and extras</h3><span>KES</span></div>
+          <div class="price-row featured"><span class="name">FeedSafe Combo<small>Nutrition + aflatoxin · 24–48 hours</small></span><span class="kes">5,000</span></div>
+          <div class="price-row"><span class="name">Express aflatoxin<small>Same day</small></span><span class="kes">+50%</span></div>
+          <div class="price-row"><span class="name">Nutritional consultation<small>After your results</small></span><span class="kes ask">Ask</span></div>
+          <div class="price-row"><span class="name">Pickup within 30 km<small>Free for 5+ samples</small></span><span class="kes">500</span></div>
+          <div class="price-row"><span class="name">Monthly plans<small>Co-ops, mills, processors</small></span><span class="kes">from 25,000</span></div>
+        </div>
       </div>
-      <p class="note prices-note">Testing starts once the test is paid for in full. *Samples received and paid by 12 noon. **Samples received and paid by 10 am. Wet chemistry is priced by the parameters you need; we confirm the price before you pay. Volume discounts: 10% from 20 samples a month, 20% from 50. Pickup within 30 km of Kenol: KES 500 per trip, free for five or more samples.</p>
+      <p class="note prices-note">Same day: received and paid by noon (express aflatoxin: by 10 am). Discounts: 10% from 20 samples a month, 20% from 50.</p>
     </div>
   </section>
 
@@ -875,8 +899,8 @@ html.js .reveal-zoom.in .photo { scale: 1; }
         <h2 id="partners-title">Grow with AgriLab.</h2>
       </div>
       <div class="partners">
-        <div class="partner"><h3>Agrovets: become a drop-off point</h3><p>Hold samples for your customers and earn 10% of every paid test. We supply sample bags, a poster and a counter sign, and collect from you.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask about the agrovet offer</a></div>
-        <div class="partner"><h3>Co-ops and millers: monthly plans</h3><p>Milk safety plans for co-operatives from KES 25,000 a month, paid in advance. QC plans for feed mills and peanut processors with priority slots and a monthly trend report. Try a month free.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask for a plan</a></div>
+        <div class="partner"><h3>Agrovets: become a drop-off point</h3><p>Hold samples for customers and earn 10% of every paid test. We supply bags and signage, and collect.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask about the agrovet offer</a></div>
+        <div class="partner"><h3>Co-ops and millers: monthly plans</h3><p>Milk safety plans from KES 25,000 a month. QC plans for mills and peanut processors. First month free.</p><a class="btn btn-ghost btn-arrow" href="#contact">Ask for a plan</a></div>
       </div>
     </div>
   </section>
@@ -889,17 +913,16 @@ html.js .reveal-zoom.in .photo { scale: 1; }
       </div>
       <div class="faq-layout">
       <div class="faq">
-        <details><summary>What is aflatoxin, and why should I test for it?</summary><p>Aflatoxin is a poison made by moulds that grow on maize, groundnuts and other feed ingredients, especially when they are stored damp. Animals that eat it grow and produce less, and dairy cows pass it into their milk as aflatoxin M1. You cannot see, smell or taste it, so testing is the only way to know.</p></details>
-        <details><summary>How fast will I get my results?</summary><p>Dry chemistry, protein and oil results come the same day for samples received and paid for by 12 noon. Aflatoxin and milk results take 24 to 48 hours, and wet chemistry up to three days. Express aflatoxin results are available the same working day for samples received and paid for by 10 am.</p></details>
-        <details><summary>How much sample do I need?</summary><p>500 g of feed for nutrition tests, 1 kg for any aflatoxin or mycotoxin test, and 100 ml of milk for aflatoxin M1. Take scoops from several places and mix them, because aflatoxin collects in pockets. Dry samples travel best in a brown paper (khaki) bag; wet ones such as silage in a sealed plastic bag.</p></details>
-        <details><summary>Can you test my milk?</summary><p>Yes. We test raw and processed milk for aflatoxin M1 and report it against both the East African limit (0.5 µg/l) and the stricter EU limit (0.05 µg/kg). Keep the sample cool and bring it within 24 hours.</p></details>
-        <details><summary>Are you accredited?</summary><p>We are working towards KENAS ISO/IEC 17025 accreditation. Every report states the method used, and results relate only to the sample tested. If a regulator or buyer needs an accredited certificate, we will tell you where to send a split sample.</p></details>
-        <details><summary>Who sees my results?</summary><p>Only you. Results are confidential to the client who submitted the sample. We only ever share combined, anonymised figures, and only with your consent.</p></details>
-        <details><summary>How do I pay?</summary><p>In full, by M-Pesa, when your sample is logged. We start testing once the payment is in, and the turnaround is counted from then. Monthly plans are paid at the start of each month.</p></details>
-        <details><summary>Can you explain my results?</summary><p>Yes. Every report says in plain words whether a number is good, low or too high. For more, add a nutritional consultation: we go through the results with you and explain what to change in the ration, for example when protein is too low for milk or eggs, or fat is high enough to cause loose stool.</p></details>
-        <details><summary>Do you test silage?</summary><p>Yes, for moisture. Seal about 500 g in a plastic bag with the air pressed out and bring it the same day, so it does not dry out on the way.</p></details>
-        <details><summary>What happens to my sample after testing?</summary><p>We keep it for up to two weeks after it arrives, in case a test needs repeating, and then dispose of it safely. If you need it kept longer, or returned, tell us when you bring it.</p></details>
-        <details><summary>Do you collect samples?</summary><p>Yes, within 30 km of Kenol for KES 500 per trip, free when we collect five or more samples together. You can also leave samples at partner agrovets.</p></details>
+        <details><summary>What is aflatoxin?</summary><p>A poison made by moulds on maize, groundnuts and feed stored damp. Animals that eat it grow and produce less, and cows pass it into their milk. Only a test can find it.</p></details>
+        <details><summary>How fast are results?</summary><p>Nutrition tests: same day if received and paid by noon. Aflatoxin and milk: 24–48 hours. Wet chemistry: up to 3 days. Express aflatoxin: same day if in by 10 am.</p></details>
+        <details><summary>How much sample do I need?</summary><p>500 g for nutrition, 1 kg for aflatoxin, 100 ml of milk. Dry samples in a khaki paper bag; wet ones sealed in plastic.</p></details>
+        <details><summary>How do I pay?</summary><p>In full, by M-Pesa, before testing starts. Turnaround counts from payment.</p></details>
+        <details><summary>Can you explain my results?</summary><p>Yes. Reports are in plain words. For more, add a nutritional consultation and we’ll go through what to change in the ration.</p></details>
+        <details><summary>Can you test milk and silage?</summary><p>Yes: milk for aflatoxin M1, against Kenyan and EU limits; silage for moisture. Keep both cool and bring them the same day.</p></details>
+        <details><summary>What happens to my sample?</summary><p>We keep it for up to two weeks in case of a retest, then dispose of it safely.</p></details>
+        <details><summary>Who sees my results?</summary><p>Only you. We share anonymised totals only with your consent.</p></details>
+        <details><summary>Are you accredited?</summary><p>We are working towards ISO/IEC 17025. Every report states the method used.</p></details>
+        <details><summary>Do you collect samples?</summary><p>Yes, within 30 km of Kenol for KES 500 a trip, free for five or more samples.</p></details>
       </div>
       <figure class="bench"><div class="ill-frame"><svg class="ill" viewBox="0 0 560 360" role="img" aria-label="Inside the AgriLab laboratory: a near-infrared feed analyser, a microplate reader with a yellow ELISA plate, test kits and a sample fridge" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="bench-clip"><rect width="560" height="360" rx="0"/></clipPath><filter id="bench-gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.11  0 0 0 0 0.11  0 0 0 0 0.25  0 0 0 1.4 -0.62"/></filter></defs><g clip-path="url(#bench-clip)"><rect width="560" height="360" fill="#F1F4F6"/><rect y="200" width="560" height="80" fill="#E7ECEF"/><rect x="300" y="26" width="150" height="86" rx="4" fill="#DCEBF2"/><path d="M300 96 Q 340 70 380 84 Q 420 96 450 78 L 450 112 L 300 112 Z" fill="#8CCB7E"/><path d="M300 104 Q 360 90 450 100 L 450 112 L 300 112 Z" fill="#5BAE5F"/><rect x="300" y="26" width="150" height="86" rx="4" fill="none" stroke="#C9CED6" stroke-width="6"/><rect x="372" y="26" width="5" height="86" fill="#C9CED6"/><rect x="20" y="110" width="240" height="8" rx="2" fill="#B9C3CC"/><rect x="34" y="64" width="22" height="46" rx="5" fill="#B8732E"/><rect x="39" y="58" width="12" height="8" rx="2" fill="#33358A"/><rect x="37" y="74" width="16" height="10" rx="2" fill="#FFFFFF" opacity="0.85"/><rect x="64" y="70" width="22" height="40" rx="5" fill="#E6EEF2"/><rect x="69" y="64" width="12" height="8" rx="2" fill="#33358A"/><rect x="67" y="80" width="16" height="10" rx="2" fill="#FFFFFF" opacity="0.85"/><rect x="92" y="76" width="22" height="34" rx="5" fill="#B8732E"/><rect x="97" y="70" width="12" height="8" rx="2" fill="#33358A"/><rect x="95" y="86" width="16" height="10" rx="2" fill="#FFFFFF" opacity="0.85"/><rect x="118" y="62" width="22" height="48" rx="5" fill="#E6EEF2"/><rect x="123" y="56" width="12" height="8" rx="2" fill="#33358A"/><rect x="121" y="72" width="16" height="10" rx="2" fill="#FFFFFF" opacity="0.85"/><rect x="150" y="76" width="92" height="34" rx="3" fill="#FFFFFF"/><rect x="150" y="76" width="92" height="9" rx="3" fill="#E5793B"/><text x="196" y="102" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="500" fill="#1C1D4A">ELISA KITS</text><g transform="translate(486 130)"><rect x="0" y="0" width="74" height="290" rx="6" fill="#EEF1F4"/><rect x="0" y="0" width="74" height="290" rx="6" fill="none" stroke="#C9CED6" stroke-width="3"/><rect x="8" y="14" width="40" height="16" rx="2" fill="#1C1D4A"/><text x="28" y="25.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#DCEBD8">4 °C</text><rect x="60" y="60" width="5" height="70" rx="2.5" fill="#9AA3B0"/><path d="M0 150 H74" stroke="#C9CED6" stroke-width="3"/></g><rect x="0" y="270" width="486" height="16" fill="#4A4F66"/><rect x="0" y="286" width="486" height="134" fill="#F3EEE4"/><rect x="12" y="296" width="110" height="112" rx="4" fill="#EDE6D8"/><rect x="56" y="306" width="22" height="5" rx="2.5" fill="#9AA3B0"/><rect x="132" y="296" width="110" height="112" rx="4" fill="#EDE6D8"/><rect x="176" y="306" width="22" height="5" rx="2.5" fill="#9AA3B0"/><rect x="252" y="296" width="110" height="112" rx="4" fill="#EDE6D8"/><rect x="296" y="306" width="22" height="5" rx="2.5" fill="#9AA3B0"/><rect x="372" y="296" width="110" height="112" rx="4" fill="#EDE6D8"/><rect x="416" y="306" width="22" height="5" rx="2.5" fill="#9AA3B0"/><g transform="translate(28 170) scale(1.35)"><ellipse cx="60" cy="74" rx="62" ry="6" fill="#000" opacity="0.12"/><rect x="0" y="24" width="120" height="50" rx="10" fill="#EEF1F4"/><rect x="0" y="58" width="120" height="16" rx="8" fill="#33358A"/><rect x="0" y="58" width="120" height="8" fill="#33358A"/><rect x="78" y="32" width="32" height="20" rx="3" fill="#1C1D4A"/><path d="M81 44.4 C 82.0 44.4 82.0 43.4 83.1 43.4 C 84.1 43.4 84.1 39.6 85.2 39.6 C 85.9 39.6 85.9 42.2 86.7 42.2 C 87.8 42.2 87.8 43.0 88.8 43.0 C 89.8 43.0 89.8 38.4 90.9 38.4 C 91.7 38.4 91.7 41.4 92.4 41.4 C 93.5 41.4 93.5 42.0 94.5 42.0 C 95.6 42.0 95.6 37.2 96.6 37.2 C 97.4 37.2 97.4 40.8 98.2 40.8 C 99.2 40.8 99.2 41.5 100.2 41.5 C 101.3 41.5 101.3 38.9 102.3 38.9 C 103.4 38.9 103.4 42.6 104.4 42.6 C 105.7 42.6 105.7 43.2 107.0 43.2" fill="none" stroke="#5BAE5F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="38" cy="24" rx="24" ry="6" fill="#8F98A6"/><path d="M20 6 L 22 24 Q 38 30 54 24 L 56 6 Z" fill="#FFFFFF" opacity="0.85"/><ellipse cx="38" cy="6" rx="18" ry="5" fill="#D9B98A"/><circle cx="26" cy="5" r="1.6" fill="#B8955F"/><circle cx="35" cy="8" r="1.6" fill="#B8955F"/><circle cx="44" cy="7" r="1.6" fill="#B8955F"/><circle cx="27" cy="6" r="1.6" fill="#B8955F"/><circle cx="36" cy="5" r="1.6" fill="#B8955F"/><circle cx="45" cy="8" r="1.6" fill="#B8955F"/><circle cx="28" cy="7" r="1.6" fill="#B8955F"/><circle cx="37" cy="6" r="1.6" fill="#B8955F"/><circle cx="12" cy="40" r="4" fill="#5BAE5F"/></g><g transform="translate(212 214)"><ellipse cx="60" cy="58" rx="62" ry="5" fill="#000" opacity="0.12"/><rect x="0" y="0" width="120" height="56" rx="8" fill="#33358A"/><rect x="8" y="8" width="34" height="14" rx="2" fill="#1C1D4A"/><text x="25" y="18.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#F2C14E">450 nm</text><rect x="20" y="34" width="94" height="22" rx="2" fill="#2A2C6E"/><rect x="56" y="40" width="70" height="20" rx="3" fill="#FFFFFF"/><circle cx="63" cy="46" r="2.8" fill="#F2C14E"/><circle cx="71" cy="46" r="2.8" fill="#FDEBA8"/><circle cx="79" cy="46" r="2.8" fill="#E8A317"/><circle cx="87" cy="46" r="2.8" fill="#FFF8D6"/><circle cx="95" cy="46" r="2.8" fill="#F2C14E"/><circle cx="103" cy="46" r="2.8" fill="#FDEBA8"/><circle cx="111" cy="46" r="2.8" fill="#E8A317"/><circle cx="119" cy="46" r="2.8" fill="#FFF8D6"/><circle cx="63" cy="54" r="2.8" fill="#FFF8D6"/><circle cx="71" cy="54" r="2.8" fill="#F2C14E"/><circle cx="79" cy="54" r="2.8" fill="#FDEBA8"/><circle cx="87" cy="54" r="2.8" fill="#E8A317"/><circle cx="95" cy="54" r="2.8" fill="#FFF8D6"/><circle cx="103" cy="54" r="2.8" fill="#F2C14E"/><circle cx="111" cy="54" r="2.8" fill="#FDEBA8"/><circle cx="119" cy="54" r="2.8" fill="#E8A317"/></g><g transform="translate(346 205) scale(0.56)">
 <path d="M30 4 L 30 40 C 14 46 4 60 4 76 C 4 98 22 114 44 114 C 66 114 84 98 84 76 C 84 60 74 46 58 40 L 58 4 Z" fill="#FFFFFF" opacity="0.75"/>
@@ -919,7 +942,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
     <div class="wrap cta-inner">
       <p class="eyebrow">Ready when you are</p>
       <h2 id="cta-title">Healthy herds start with tested feed.</h2>
-      <p class="lead">Bring a sample to Horizon Business Park in Kenol, leave it at a partner agrovet, or ask us to collect it.</p>
+      <p class="lead">Bring a sample to Kenol, leave it at an agrovet, or ask us to collect.</p>
       <div class="cta-row">
         <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
         <a class="btn btn-light btn-arrow" href="#contact">Visit or call</a>
@@ -944,7 +967,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 
       <form id="quote" novalidate aria-labelledby="quote-title">
         <h3 id="quote-title">Request a test or a quote</h3>
-        <p class="note" style="margin-top: 0;">Fill this in and we’ll prepare a WhatsApp message for you to send.</p>
+        <p class="note" style="margin-top: 0;">We’ll turn this into a WhatsApp message.</p>
         <div class="row2">
           <div class="field"><label for="q-name">Your name</label><input id="q-name" name="name" autocomplete="name" required></div>
           <div class="field"><label for="q-phone">Phone</label><input id="q-phone" name="phone" inputmode="tel" autocomplete="tel"></div>
@@ -977,7 +1000,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
             <a class="btn btn-primary" id="q-wa" href="#" target="_blank" rel="noopener">Open in WhatsApp</a>
             <button class="btn btn-ghost" type="button" id="q-copy">Copy message</button>
           </div>
-          <p class="note" style="margin-top: 0;">If WhatsApp does not open, copy the message and send it to +254 701 321 020.</p>
+          <p class="note" style="margin-top: 0;">If WhatsApp doesn’t open, copy the message to +254 701 321 020.</p>
         </div>
       </form>
     </div>
@@ -1092,7 +1115,7 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 
   // Scroll reveals, staggered within each group.
   var groups = ['.section-head', '.hero .strip > div', '.panorama', '.plate', '.fact', '.story-photo', '.story-text > p',
-    '.card', '.meaning', '.consult-strip', '.steps li', '.sample-card', '.aud', '.pillar', '.table-wrap', '.prices-note', '.partner', '.faq', '.bench',
+    '.card', '.meaning', '.consult-strip', '.steps li', '.sample-card', '.aud', '.pillar', '.price-group', '.prices-note', '.partner', '.faq', '.bench',
     '.cta-inner > *', '.contact-item', '.contact figure', '#quote', 'footer .wrap > div'];
   var targets = [];
   groups.forEach(function (sel) {

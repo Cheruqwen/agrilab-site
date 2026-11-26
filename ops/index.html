@@ -674,7 +674,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     const perms = Object.keys(PERMS);
     return `<section class="panel" style="max-width:860px;margin:0 auto;width:100%">
       <div class="panel-head"><h2>Demo: sign in as each role</h2><button class="btn small" type="button" data-action="demo-reset">Reset demo data</button></div>
-      <p class="note">This copy runs on this computer only. Records are kept in this browser until you reset them. Each person below has the PIN shown.</p>
+      <p class="note">Runs on this computer only. Records stay in this browser until you reset them.</p>
       <div class="demo-users">${users.map(u => `<div class="demo-user">${roleCard(u.role, false).replace('<b>' + esc(ROLE_LABEL[u.role]) + '</b>', '<b>' + esc(u.name) + ' · ' + esc(ROLE_LABEL[u.role]) + ' <span class="chip">PIN ' + esc(u.pin) + '</span></b>')}<button class="btn primary small" type="button" data-action="demo-login" data-name="${esc(u.name)}" data-pin="${esc(u.pin)}">Sign in</button></div>`).join('')}</div>
       <h3>Who can do what</h3>
       <div class="tbl-wrap"><table class="perm-table"><thead><tr><th>Action</th>${ALL_ROLES.map(r => `<th>${esc(ROLE_LABEL[r])}</th>`).join('')}</tr></thead>
@@ -1137,26 +1137,26 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   // Work plan: the day's routine plus the live queues it works through.
   // The routine is a suggested day; edit the times and tasks here to match how the lab runs.
   const ROUTINE = [
-    ['08:00', 'Open the lab. Read the fridge min and max, run the NIR check sample, log today’s QC.'],
-    ['08:30', 'Reception: sign visitors in, match M-Pesa payments, log overnight drop-offs. Unpaid samples wait on the shelf.'],
-    ['09:00', 'Prepare samples: dry the wet ones, grind feeds and grains, check every khaki bag is labelled.'],
-    ['10:00', 'Express aflatoxin cut-off. Build the ELISA batch (up to 96 paid samples) and start the plate.'],
-    ['11:00', 'NIR runs: dry chemistry, protein only, oil only.'],
-    ['12:00', 'Same-day NIR cut-off. Enter results and send for review.'],
+    ['08:00', 'Fridge reading, NIR check sample, QC log.'],
+    ['08:30', 'Reception: visitors, payments, overnight drop-offs.'],
+    ['09:00', 'Dry wet samples; grind feeds and grains.'],
+    ['10:00', 'Express cut-off. Start the ELISA batch (max 96).'],
+    ['11:00', 'NIR runs: dry chemistry, protein, oil.'],
+    ['12:00', 'Same-day cut-off. Enter NIR results.'],
     ['13:00', 'Lunch.'],
-    ['14:00', 'Wet chemistry and silage moisture. Read the ELISA plate and enter results.'],
-    ['15:00', 'Second sign-off by the lab manager or the Director.'],
-    ['16:00', 'Send reports. Call clients booked for a nutritional consultation.'],
-    ['16:30', 'Dispose of samples at the two-week limit. Clean benches and the grinder.'],
-    ['17:00', 'Daily close-out.']
+    ['14:00', 'Wet chemistry and silage moisture. Read the ELISA plate.'],
+    ['15:00', 'Second sign-off.'],
+    ['16:00', 'Send reports. Consultation calls.'],
+    ['16:30', 'Dispose of two-week-old samples. Clean up.'],
+    ['17:00', 'Close-out.']
   ];
   const ROUTINE_SAT = [
-    ['08:00', 'Open the lab, fridge reading, NIR check sample, QC log.'],
-    ['08:30', 'Reception, payments and drop-offs.'],
-    ['09:00', 'Prepare samples: dry and grind.'],
-    ['10:00', 'Express aflatoxin cut-off; NIR runs.'],
-    ['12:00', 'Sign-off and send reports.'],
-    ['12:30', 'Dispose of samples at the two-week limit.'],
+    ['08:00', 'Fridge reading, NIR check sample, QC log.'],
+    ['08:30', 'Reception, payments, drop-offs.'],
+    ['09:00', 'Dry and grind.'],
+    ['10:00', 'Express cut-off; NIR runs.'],
+    ['12:00', 'Sign-off; send reports.'],
+    ['12:30', 'Dispose of two-week-old samples.'],
     ['13:00', 'Close-out.']
   ];
   const PICK_METHODS = ['All', 'NIR', 'ELISA', 'Wet chemistry', 'Oven moisture'];
