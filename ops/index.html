@@ -239,6 +239,8 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
 .demo-user { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
 .perm-table td, .perm-table th { text-align: center; }
 .perm-table td:first-child, .perm-table th:first-child { text-align: left; }
+.job.client-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 130px 110px minmax(0, 1.2fr) 110px; }
+@media (max-width: 860px) { .job.client-row { grid-template-columns: 1fr auto; } }
 .batch-sel { width: auto; min-width: 180px; padding: 6px 10px; border-radius: 999px; font-size: 13.5px; }
 </style>
 </head>
@@ -265,6 +267,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     <button class="tab" role="tab" data-view="plan" type="button">Work plan</button>
     <button class="tab" role="tab" data-view="samples" type="button">Samples</button>
     <button class="tab" role="tab" data-view="new" type="button">New sample</button>
+    <button class="tab" role="tab" data-view="clients" type="button">Clients</button>
     <button class="tab" role="tab" data-view="visitors" type="button">Visitors</button>
     <button class="tab" role="tab" data-view="stock" type="button">Stock &amp; QC</button>
     <button class="tab" role="tab" data-view="closeout" type="button">Close-out</button>
@@ -313,7 +316,28 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   const COUNTIES = ['Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa', 'Homa Bay', 'Isiolo', 'Kajiado', 'Kakamega', 'Kericho', 'Kiambu', 'Kilifi', 'Kirinyaga', 'Kisii', 'Kisumu', 'Kitui', 'Kwale', 'Laikipia', 'Lamu', 'Machakos', 'Makueni', 'Mandera', 'Marsabit', 'Meru', 'Migori', 'Mombasa', 'Murang’a', 'Nairobi', 'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua', 'Nyeri', 'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River', 'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot', 'Imported (outside Kenya)'];
   const VISITOR_PURPOSES = ['Bringing a sample', 'Collecting results', 'Nutritional consultation', 'Enquiry', 'Delivery', 'Partnership or business', 'Other'];
   const BATCH_MAX = 96, KEEP_DAYS = 14;
-  const CLIENT_TYPES = ['Dairy farmer', 'Milk co-operative', 'Feed miller', 'Feed distributor', 'Agrovet', 'Poultry, pig or fish farmer', 'Peanut butter manufacturer or importer', 'Children’s home', 'School', 'Restaurant or caterer', 'Grain trader or posho mill', 'Institution or researcher', 'Other'];
+  // Client groups. Each group gets its own portal page (portal/index.html). Same mapping as apps-script/Code.gs.
+  const SEGMENTS = [['farmer', 'Farmer'], ['aggregator', 'Aggregator'], ['consumer', 'Consumer (school, kitchen)'], ['trade', 'Importer or exporter']];
+  const SEGMENT_LABEL = Object.fromEntries(SEGMENTS);
+  const SEGMENT_OF_TYPE = {
+    'Dairy farmer': 'farmer', 'Poultry, pig or fish farmer': 'farmer',
+    'Milk co-operative': 'aggregator', 'Dairy co-operative': 'aggregator', 'Feed miller': 'aggregator', 'Feed distributor': 'aggregator', 'Agrovet': 'aggregator', 'Grain trader or posho mill': 'aggregator',
+    'Children’s home': 'consumer', 'School': 'consumer', 'Restaurant or caterer': 'consumer', 'Institution or researcher': 'consumer',
+    'Peanut butter manufacturer or importer': 'trade', 'Importer': 'trade', 'Exporter': 'trade'
+  };
+  const ELEMENT_FIELD = {
+    farmer: ['Which feed, silage or herd?', 'e.g. Dairy meal – Brand A, Silage pit 2'],
+    aggregator: ['Supplier or member', 'e.g. Member 104, Mwangi Farm'],
+    consumer: ['Food item and supplier', 'e.g. Maize flour – Supplier A'],
+    trade: ['Consignment or lot', 'e.g. Lot TZ-2611-04, Malawi peanuts']
+  };
+  const DEFAULT_TIERS = [
+    { name: 'Standard', minSpend: 0, minTests: 0, minMonths: 0, discount: 0 },
+    { name: 'Silver', minSpend: 20000, minTests: 0, minMonths: 0, discount: 5 },
+    { name: 'Gold', minSpend: 60000, minTests: 10, minMonths: 0, discount: 10 },
+    { name: 'Platinum', minSpend: 150000, minTests: 0, minMonths: 12, discount: 15 }
+  ];
+  const CLIENT_TYPES = ['Dairy farmer', 'Milk co-operative', 'Feed miller', 'Feed distributor', 'Agrovet', 'Poultry, pig or fish farmer', 'Peanut butter manufacturer or importer', 'Importer', 'Exporter', 'Children’s home', 'School', 'Restaurant or caterer', 'Grain trader or posho mill', 'Institution or researcher', 'Other'];
   const CHANNELS = ['Walk-in', 'Agrovet drop-off', 'Pickup', 'Courier'];
   const HEARD = ['Agrovet', 'Co-operative', 'Radio', 'Facebook or TikTok', 'WhatsApp', 'Google', 'Friend or neighbour', 'Open Lab Day', 'Vet or extension officer', 'Returning client', 'Other'];
   const STATUSES = [['received', 'Received'], ['analysis', 'In analysis'], ['review', 'Awaiting review'], ['ready', 'Signed, to send'], ['reported', 'Reported']];
@@ -394,13 +418,13 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   // ---------- state ----------
   const state = {
     view: 'dashboard', filter: 'open', search: '', selected: null, batch: '', picked: {},
-    live: { samples: [], stock: [], qc: [], visitors: [] }, demoData: null, demo: false,
+    live: { samples: [], stock: [], qc: [], visitors: [], clients: [], settings: null }, client: null, lastPin: null, tierDraft: null, cseg: 'all', csearch: '', demoData: null, demo: false,
     token: null, me: null, staff: [], canWrite: null, readOnly: false, connected: 'connecting', loading: false, lastSync: null,
     names: {}, lastCreated: null, dirty: {}
   };
   const data = () => (state.demo ? state.demoData : state.live);
-  const DIRTY_SKIP = new Set(['search', 'co-day', 'batchSel', 'v-search']);
-  function trackDirty(el) { if (!el || !el.id || DIRTY_SKIP.has(el.id)) return; state.dirty[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? { c: el.checked } : { v: el.value }; }
+  const DIRTY_SKIP = new Set(['search', 'co-day', 'batchSel', 'v-search', 'c-search']);
+  function trackDirty(el) { if (!el || !el.id || DIRTY_SKIP.has(el.id) || el.id.startsWith('tier-')) return; state.dirty[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? { c: el.checked } : { v: el.value }; }
   function restoreDirty() { for (const id in state.dirty) { const el = document.getElementById(id); if (!el || el.disabled) continue; const d = state.dirty[id]; if ('c' in d) el.checked = d.c; else el.value = d.v; } }
   function clearDirty(prefixes) { for (const id in state.dirty) if (prefixes.some(p => id.startsWith(p))) delete state.dirty[id]; }
 
@@ -441,13 +465,15 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     qc: ['director', 'lab_manager', 'analyst'],
     closeout: ['director', 'lab_manager', 'client_desk'],
     visitors: ALL_ROLES,
+    clients: ['director', 'lab_manager', 'client_desk'],
+    loyalty: ['director'],
     bigDiscount: ['director']
   };
   const PERM_LABEL = {
     logSample: 'Log new samples', payment: 'Record M-Pesa payments (paid in full)', batch: 'Put paid samples into test batches',
     results: 'Enter results and send them for review', signOff: 'Sign off results (never their own)', sendReport: 'Send reports to clients',
     consult: 'Mark nutritional consultations done', dispose: 'Mark samples disposed', stock: 'Add and update test kit stock',
-    qc: 'Log the daily QC', closeout: 'Run the daily close-out', visitors: 'Sign in visitors', bigDiscount: 'Approve 50% discounts and free trials'
+    qc: 'Log the daily QC', closeout: 'Run the daily close-out', visitors: 'Sign in visitors', bigDiscount: 'Approve 50% discounts and free trials', clients: 'Manage client accounts and portal PINs', loyalty: 'Set loyalty discount tiers'
   };
   const ROLE_SUMMARY = {
     director: 'Runs the lab. Can do everything, and is the only one who approves big discounts and free trials.',
@@ -488,7 +514,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       createdBy: r.createdBy, notes: r.notes, results, updatedAt: r.updatedAt,
       county: r.county, landmark: r.landmark, sampleState: r.sampleState, grinding: !!r.grinding, packaging: r.packaging, batch: r.batch,
       consult: !!r.consult, consultFee: Number(r.consultFee) || 0, consultDoneAt: r.consultDoneAt, quoted: Number(r.quoted) || 0,
-      disposeBy: r.disposeBy, disposedAt: r.disposedAt, disposedBy: r.disposedBy };
+      disposeBy: r.disposeBy, disposedAt: r.disposedAt, disposedBy: r.disposedBy, clientId: r.clientId, element: r.element };
   }
   function saveSession() { try { if (state.token) localStorage.setItem(SESSION_KEY, JSON.stringify({ token: state.token, me: state.me })); else localStorage.removeItem(SESSION_KEY); } catch (e) {} }
   function handleErr(e) {
@@ -514,7 +540,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     try {
       const j = await api('data');
       state.me = j.me; state.staff = j.staff || [];
-      state.live = { samples: (j.samples || []).map(fromApi), stock: j.stock || [], qc: j.qc || [], visitors: j.visitors || [] };
+      state.live = { samples: (j.samples || []).map(fromApi), stock: j.stock || [], qc: j.qc || [], visitors: j.visitors || [], clients: j.clients || [], settings: j.settings || null };
       state.connected = 'ok'; state.lastSync = new Date(); saveSession();
     } catch (e) {
       if (e.code === 'unauthorized' || !quiet) handleErr(e); else state.connected = 'offline';
@@ -523,7 +549,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   function signOut(silent) {
     if (state.token && !silent) api('logout').catch(() => {});
     state.token = null; state.me = null; state.staff = []; state.selected = null; state.lastCreated = null;
-    state.live = { samples: [], stock: [], qc: [], visitors: [] }; state.dirty = {}; state.picked = {}; saveSession(); render();
+    state.live = { samples: [], stock: [], qc: [], visitors: [], clients: [], settings: null }; state.dirty = {}; state.client = null; state.lastPin = null; state.tierDraft = null; state.picked = {}; saveSession(); render();
   }
   async function doLogin(ev) {
     ev.preventDefault();
@@ -692,6 +718,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     else if (state.view === 'closeout') v.innerHTML = viewCloseout();
     else if (state.view === 'plan') v.innerHTML = viewPlan();
     else if (state.view === 'visitors') v.innerHTML = viewVisitors();
+    else if (state.view === 'clients') v.innerHTML = viewClients();
     renderDrawer();
     if (state.view === 'new' && !state.dirty['n-stype']) applyTypeDefaults();
     restoreDirty();
@@ -852,6 +879,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       </div>
       <div class="fgrid">
         <div class="field"><label for="n-stype">Sample type</label><select id="n-stype">${opt(SAMPLE_TYPES)}</select></div>
+        <div class="field"><label for="n-element" id="n-element-lab">Which feed, silage or herd?</label><input id="n-element" placeholder="e.g. Dairy meal – Brand A"><span class="help">Groups results on the client’s portal.</span></div>
         <div class="field"><label for="n-desc">Description</label><input id="n-desc" placeholder="Brand, batch, where it was taken"></div>
         <div class="field"><label for="n-sampled">Date sampled</label><input id="n-sampled" type="date" value="${dayKey(now())}"></div>
       </div>
@@ -872,7 +900,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <div class="field"><label for="n-channel">Received via</label><select id="n-channel">${opt(CHANNELS)}</select></div>
         <div class="field"><label for="n-agrovet">Agrovet or courier name</label><input id="n-agrovet" placeholder="If dropped off or couriered"></div>
         <div class="field"><label for="n-heard">How did they hear about us?</label><select id="n-heard">${opt(HEARD)}</select></div>
-        <div class="field"><label for="n-discount">Discount</label><select id="n-discount"><option value="0">None</option><option value="10">10% (20+ samples this month)</option><option value="20">20% (50+ samples this month)</option><option value="50" ${can('bigDiscount') ? '' : 'disabled'}>50% (launch offer)</option><option value="100" ${can('bigDiscount') ? '' : 'disabled'}>Free trial (Director approved)</option></select></div>
+        <div class="field"><label for="n-discount">Discount</label><select id="n-discount"><option value="0">None</option><option value="50" ${can('bigDiscount') ? '' : 'disabled'}>50% (launch offer)</option><option value="100" ${can('bigDiscount') ? '' : 'disabled'}>Free trial (Director approved)</option></select></div>
       </div>
       <div class="fgrid">
         <div class="field"><label for="n-mpesa">M-Pesa code</label><input id="n-mpesa" class="mono" placeholder="e.g. TKX4ABC12D" autocomplete="off" style="text-transform:uppercase"></div>
@@ -891,7 +919,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       consult: $('#n-consult').checked, fee: $('#n-consult').checked ? (Number($('#n-fee').value) || 0) : 0,
       quoted: tests.some(c => TESTS[c].quote) ? (Number($('#n-quoted').value) || 0) : 0,
       stype: $('#n-stype').value, desc: $('#n-desc').value.trim(), sampled: $('#n-sampled').value, tests,
-      channel: $('#n-channel').value, agrovet: $('#n-agrovet').value.trim(), heard: $('#n-heard').value, discount: Number($('#n-discount').value),
+      channel: $('#n-channel').value, agrovet: $('#n-agrovet').value.trim(), heard: $('#n-heard').value, discount: Number($('#n-discount').value), element: ($('#n-element') || {}).value ? $('#n-element').value.trim() : '',
       mpesa: $('#n-mpesa').value.trim().toUpperCase(), paid: $('#n-paid').checked, express: $('#n-express').checked, consent: $('#n-consent').checked, notes: $('#n-notes').value.trim()
     };
   }
@@ -910,7 +938,20 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     const quoted = quoteTests.length ? (Number($('#n-quoted').value) || 0) : 0;
     const price = priceFor(tests, f.express, f.discount, quoted, f.fee);
     const due = tests.length ? fmtDT(dueFor(now().toISOString(), tests, f.express)) : '—';
-    box.innerHTML = `<div><span class="k">Tests</span><span class="v">${tests.length || '—'}</span></div><div><span class="k">Price, paid in full before testing</span><span class="v num">${tests.length ? kes(price) : '—'}</span></div><div><span class="k">Due</span><span class="v num">${esc(due)}</span></div><div><span class="k">Dispose by</span><span class="v num">${esc(fmtDay(new Date(now().getTime() + KEEP_DAYS * 864e5)))}</span></div>${f.discount >= 50 ? '<span class="chip warn">Needs Director approval</span>' : ''}${quoteTests.length && !quoted ? '<span class="chip warn">Enter the agreed price</span>' : ''}`;
+    // Existing client: show their loyalty tier and apply its discount unless someone chose another.
+    const seg = SEGMENT_OF_TYPE[f.ctype] || 'farmer'; const ef = ELEMENT_FIELD[seg];
+    if ($('#n-element-lab').textContent !== ef[0]) { $('#n-element-lab').textContent = ef[0]; $('#n-element').placeholder = ef[1]; }
+    const match = clientByPhone(f.phone); const loy = match ? loyaltyOf(match) : null;
+    const dsel = $('#n-discount'); let lopt = dsel.querySelector('option[data-loyalty]');
+    if (loy && loy.tier && loy.tier.discount > 0) {
+      if (!lopt) { lopt = document.createElement('option'); lopt.dataset.loyalty = '1'; dsel.insertBefore(lopt, dsel.options[1]); }
+      lopt.value = String(loy.tier.discount); lopt.textContent = loy.tier.discount + '% loyalty (' + loy.tier.name + ')';
+      if (!state.dirty['n-discount']) dsel.value = lopt.value;
+    } else if (lopt) { if (dsel.value === lopt.value) dsel.value = '0'; lopt.remove(); }
+    const disc = Number(dsel.value) || 0;
+    const price2 = priceFor(tests, f.express, disc, quoted, f.fee);
+    const clientChip = match ? `<span class="chip info">Existing client · ${esc(loy.tier ? loy.tier.name : 'no tier')} · ${kes(loy.spend)} ${loy.period === 'all' ? 'all time' : 'in 12 months'}</span>` : (f.phone ? '<span class="chip">New client: an account is created when you log this</span>' : '');
+    box.innerHTML = `<div><span class="k">Tests</span><span class="v">${tests.length || '—'}</span></div><div><span class="k">Price, paid in full before testing</span><span class="v num">${tests.length ? kes(price2) : '—'}</span></div><div><span class="k">Due</span><span class="v num">${esc(due)}</span></div><div><span class="k">Dispose by</span><span class="v num">${esc(fmtDay(new Date(now().getTime() + KEEP_DAYS * 864e5)))}</span></div>${clientChip}${disc >= 50 ? '<span class="chip warn">Needs Director approval</span>' : ''}${quoteTests.length && !quoted ? '<span class="chip warn">Enter the agreed price</span>' : ''}`;
   }
   function applyTypeDefaults() {
     const t = $('#n-stype'); if (!t) return; const v = t.value;
@@ -937,7 +978,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       tests: f.tests, express: f.express, channel: f.channel, agrovet: f.agrovet, heardVia: f.heard, discount: f.discount,
       price: priceFor(f.tests, f.express, f.discount, f.quoted, f.fee), paid: f.paid || f.discount >= 100, mpesa: f.mpesa, consent: f.consent, notes: f.notes,
       dueAt: dueFor(now().toISOString(), f.tests, f.express),
-      county: f.county, landmark: f.landmark, sampleState: f.state, grinding: f.grind, packaging: f.pack, consult: f.consult, consultFee: f.fee, quoted: f.quoted
+      element: f.element, county: f.county, landmark: f.landmark, sampleState: f.state, grinding: f.grind, packaging: f.pack, consult: f.consult, consultFee: f.fee, quoted: f.quoted
     };
     const j = await call('createSample', { sample });
     if (btn) { btn.disabled = false; btn.textContent = 'Log sample'; }
@@ -1222,6 +1263,96 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       </section>`;
   }
 
+  // Clients: accounts, loyalty tiers and portal access.
+  const normPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d.length === 10 && d[0] === '0' ? '254' + d.slice(1) : d.length === 9 && /^[17]/.test(d) ? '254' + d : d; };
+  const clientByPhone = phone => { const n = normPhone(phone); return n ? (data().clients || []).find(c => normPhone(c.phone) === n) || null : null; };
+  const settingsNow = () => data().settings || { tiers: DEFAULT_TIERS, period: '12m', retestDays: 30 };
+  // Same rule as loyalty_() in apps-script/Code.gs: spend on paid samples (last 12 months or all time), paid samples, months as a client.
+  function loyaltyOf(c) {
+    const st = settingsNow(); const t = Date.now(), from = st.period === 'all' ? 0 : t - 365 * 864e5;
+    const mine = data().samples.filter(x => x.clientId === c.id);
+    const paid = mine.filter(x => x.paid && new Date(x.receivedAt).getTime() >= from);
+    const spend = paid.reduce((a, x) => a + (Number(x.price) || 0), 0);
+    const first = mine.reduce((m, x) => x.receivedAt && x.receivedAt < m ? x.receivedAt : m, c.since || new Date().toISOString());
+    const months = Math.max(0, Math.floor((t - new Date(first).getTime()) / (30.44 * 864e5)));
+    const tiers = st.tiers.slice().sort((a, b) => a.minSpend - b.minSpend);
+    const ok = x => spend >= x.minSpend && paid.length >= (x.minTests || 0) && months >= (x.minMonths || 0);
+    let tier = null; tiers.forEach(x => { if (ok(x)) tier = x; });
+    let next = null; tiers.forEach(x => { if (!next && !ok(x) && (!tier || x.minSpend > tier.minSpend)) next = x; });
+    return { spend, tests: paid.length, months, since: first, period: st.period, tier, next, samples: mine };
+  }
+  const portalUrl = () => { try { return new URL('../portal/', location.href).href; } catch (e) { return '../portal/'; } };
+  const nextNeeds = l => !l.next ? 'Top tier' : [l.spend < l.next.minSpend ? kes(l.next.minSpend - l.spend) + ' more spend' : '', l.tests < (l.next.minTests || 0) ? (l.next.minTests - l.tests) + ' more tests' : '', l.months < (l.next.minMonths || 0) ? (l.next.minMonths - l.months) + ' more months' : ''].filter(Boolean).join(', ') + ' to ' + l.next.name;
+  function viewClients() {
+    if (state.demo) return `<section class="panel"><div class="empty"><h3>Clients appear with live records</h3><p>Use the offline demo or the connected system to see client accounts and loyalty tiers.</p></div></section>`;
+    const ro = state.readOnly || state.canWrite === false;
+    const st = settingsNow();
+    const all = (data().clients || []).map(c => ({ c, l: loyaltyOf(c) }));
+    const q = (state.csearch || '').trim().toLowerCase();
+    const list = all.filter(x => (state.cseg === 'all' || x.c.segment === state.cseg) && (!q || [x.c.name, x.c.phone, x.c.county, x.c.type].join(' ').toLowerCase().includes(q)))
+      .sort((a, b) => b.l.spend - a.l.spend);
+    const tierCount = {}; all.forEach(x => { const n = x.l.tier ? x.l.tier.name : '—'; tierCount[n] = (tierCount[n] || 0) + 1; });
+    const draft = state.tierDraft || (state.tierDraft = { tiers: st.tiers.map(t => Object.assign({}, t)), period: st.period, retestDays: st.retestDays });
+    const canL = can('loyalty') && !ro;
+    const inp = (i, k, v, w) => `<input id="tier-${i}-${k}" ${k === 'name' ? '' : 'type="number" min="0"'} value="${esc(v)}" style="width:${w}px" ${canL ? '' : 'disabled'} aria-label="${k}">`;
+    const tierRows = draft.tiers.map((t, i) => `<tr><td>${inp(i, 'name', t.name, 120)}</td><td class="r">${inp(i, 'minSpend', t.minSpend, 110)}</td><td class="r">${inp(i, 'minTests', t.minTests || 0, 70)}</td><td class="r">${inp(i, 'minMonths', t.minMonths || 0, 70)}</td><td class="r">${inp(i, 'discount', t.discount, 70)}</td><td class="r">${tierCount[t.name] || 0}</td><td>${canL && draft.tiers.length > 1 ? `<button class="btn small danger" type="button" data-action="tier-del" data-i="${i}">Remove</button>` : ''}</td></tr>`).join('');
+    const sel = state.client && all.find(x => x.c.id === state.client);
+    const segChips = [['all', 'All']].concat(SEGMENTS).map(([k, l]) => `<button class="fchip" type="button" data-cseg="${k}" aria-pressed="${state.cseg === k}">${esc(l)} <span class="note">${k === 'all' ? all.length : all.filter(x => x.c.segment === k).length}</span></button>`).join('');
+    const rows = list.map(({ c, l }) => `<button class="job client-row" type="button" data-client-open="${esc(c.id)}">
+        <span class="cell"><b>${esc(c.name)}</b><small>${esc(c.phone || 'no phone')} · ${esc(c.county || '—')}</small></span>
+        <span class="cell">${esc(SEGMENT_LABEL[c.segment] || c.segment)}<small>${esc(c.type || '')}</small></span>
+        <span class="cell num">${kes(l.spend)}<small>${l.tests} paid samples</small></span>
+        <span class="cell">${l.months} mo<small>since ${esc(fmtDay(l.since))}</small></span>
+        <span class="cell"><span class="chip ${l.tier && l.tier.discount ? 'good' : ''}">${esc(l.tier ? l.tier.name : '—')}${l.tier && l.tier.discount ? ' · ' + l.tier.discount + '%' : ''}</span><small>${esc(nextNeeds(l))}</small></span>
+        <span class="cell">${c.portal ? '<span class="chip info">Portal on</span>' : '<small>No portal</small>'}</span>
+      </button>`).join('');
+    return `${sel ? clientPanel(sel.c, sel.l) : ''}
+      <section class="panel"><div class="panel-head"><h2>Loyalty discounts</h2><span class="hint">${canL ? 'Only the Director can change these.' : 'Set by the Director.'} The highest tier a client meets applies automatically.</span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Tier</th><th class="r">Min spend (KES)</th><th class="r">Min tests</th><th class="r">Min months</th><th class="r">Discount %</th><th class="r">Clients</th><th></th></tr></thead><tbody>${tierRows}</tbody></table></div>
+        <div class="row"><label class="note" for="tier-period">Spend counted over</label><select id="tier-period" style="width:auto" ${canL ? '' : 'disabled'}><option value="12m" ${draft.period === '12m' ? 'selected' : ''}>the last 12 months</option><option value="all" ${draft.period === 'all' ? 'selected' : ''}>all time</option></select>
+          <label class="note" for="tier-retest">Food retest reminder (days)</label><input id="tier-retest" type="number" min="7" max="365" value="${esc(draft.retestDays)}" style="width:90px" ${canL ? '' : 'disabled'}>
+          <span class="spacer"></span>${canL ? '<button class="btn small" type="button" data-action="tier-add">Add tier</button><button class="btn small" type="button" data-action="tier-reset">Undo changes</button><button class="btn small primary" type="button" data-action="tier-save">Save tiers</button>' : ''}</div>
+        <p class="note">A client must meet every minimum in a tier. Leave tests or months at 0 to judge on spend alone.</p>
+      </section>
+      <section class="panel"><div class="panel-head"><h2>Clients</h2><span class="hint">${list.length} shown · ${all.filter(x => x.c.portal).length} with portal access</span></div>
+        <div class="filters">${segChips}</div>
+        <div class="filters"><input class="search" id="c-search" type="search" placeholder="Search name, phone, county" value="${esc(state.csearch || '')}" aria-label="Search clients"></div>
+        ${list.length ? `<div class="jobs"><div class="job head client-row"><span>Client</span><span>Group</span><span>Spend</span><span>Client for</span><span>Tier · next</span><span>Portal</span></div>${rows}</div>` : '<div class="empty"><h3>No clients yet</h3><p>A client account is created when their first sample is logged.</p></div>'}
+      </section>`;
+  }
+  function clientPanel(c, l) {
+    const ro = state.readOnly || state.canWrite === false; const canC = can('clients') && !ro;
+    const dis = canC ? '' : 'disabled';
+    const pin = state.lastPin && state.lastPin.id === c.id ? state.lastPin.pin : null;
+    const invite = pin ? `Hello ${c.name}, your AgriLab client portal is ready: ${portalUrl()}\nSign in with your phone number (${c.phone}) and PIN ${pin}.\nSee all your results, trends and your loyalty discount in one place.` : '';
+    const opt = (arr, v) => arr.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('');
+    const pct = l.next ? Math.min(100, Math.round(l.spend / Math.max(1, l.next.minSpend) * 100)) : 100;
+    return `<section class="panel" style="border-color:var(--accent)"><div class="panel-head"><h2>${esc(c.name)}</h2><button class="btn small" type="button" data-action="client-close">Close</button></div>
+      <div class="kpis">
+        <div class="kpi"><span class="label">Tier</span><span class="value">${esc(l.tier ? l.tier.name : '—')}</span><span class="sub">${l.tier ? l.tier.discount + '% off every test' : 'no discount yet'}</span></div>
+        <div class="kpi"><span class="label">Spend</span><span class="value" style="font-size:22px">${kes(l.spend)}</span><span class="sub">${l.period === 'all' ? 'all time' : 'last 12 months'}</span></div>
+        <div class="kpi"><span class="label">Paid samples</span><span class="value">${l.tests}</span><span class="sub">${l.samples.length} logged in total</span></div>
+        <div class="kpi"><span class="label">Client for</span><span class="value">${l.months} mo</span><span class="sub">since ${esc(fmtDay(l.since))}</span></div>
+      </div>
+      <div style="display:grid;gap:6px"><div class="meter"><span style="width:${pct}%"></span></div><span class="note">${esc(nextNeeds(l))}${l.next ? ' (' + l.next.discount + '% off)' : ''}</span></div>
+      <div class="fgrid">
+        <div class="field"><label for="cl-name">Name</label><input id="cl-name" value="${esc(c.name)}" ${dis}></div>
+        <div class="field"><label for="cl-phone">Phone (portal sign-in)</label><input id="cl-phone" value="${esc(c.phone || '')}" ${dis}></div>
+        <div class="field"><label for="cl-email">Email</label><input id="cl-email" value="${esc(c.email || '')}" ${dis}></div>
+      </div>
+      <div class="fgrid">
+        <div class="field"><label for="cl-type">Client type</label><select id="cl-type" ${dis}>${opt(CLIENT_TYPES, c.type)}</select></div>
+        <div class="field"><label for="cl-seg">Portal page</label><select id="cl-seg" ${dis}>${SEGMENTS.map(([k, lab]) => `<option value="${k}" ${k === c.segment ? 'selected' : ''}>${esc(lab)}</option>`).join('')}</select></div>
+        <div class="field"><label for="cl-county">County</label><select id="cl-county" ${dis}><option value=""></option>${opt(COUNTIES, c.county)}</select></div>
+        <div class="field"><label for="cl-landmark">Nearest landmark</label><input id="cl-landmark" value="${esc(c.landmark || '')}" ${dis}></div>
+      </div>
+      <div class="row"><button class="btn small primary" type="button" data-action="client-save" ${dis}>Save details</button><span class="spacer"></span>
+        <span class="chip ${c.portal ? 'info' : ''}">${c.portal ? 'Portal on' : 'No portal access'}</span><button class="btn small" type="button" data-action="client-pin" ${dis}>${c.portal ? 'Give a new PIN' : 'Give portal access'}</button></div>
+      ${pin ? `<div class="box"><h3>Portal PIN: <span class="mono">${esc(pin)}</span></h3><p class="note">Shown once. Send it to the client now; the lab keeps only a scrambled copy.</p><pre class="msg">${esc(invite)}</pre><div class="row"><button class="btn small primary" type="button" data-action="copy-invite">Copy WhatsApp message</button></div></div>` : ''}
+      <div class="alerts">${l.samples.slice(0, 8).map(s => `<button class="alert" type="button" data-open="${esc(s.id)}"><span class="chip ${s.status === 'reported' ? 'good' : 'info'}">${esc(STATUS_LABEL[s.status])}</span><span class="what"><b class="mono">${esc(s.id)}</b> · ${esc(s.element || s.sampleType)}<span>${esc(fmtDT(s.receivedAt))} · ${kes(s.price)}${s.paid ? '' : ' · unpaid'}</span></span><span class="note">Open</span></button>`).join('') || '<p class="note">No samples yet.</p>'}</div>
+    </section>`;
+  }
+
   // Visitors book: reception entries and entries from the online book (/visit/).
   const visitUrl = () => { try { return new URL('../visit/', location.href).href; } catch (e) { return '../visit/'; } };
   function viewVisitors() {
@@ -1292,6 +1423,8 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     if (t.dataset.filterGo) { state.filter = t.dataset.filterGo === 'reported' ? 'reported' : t.dataset.filterGo; setView('samples'); return; }
     if (t.dataset.act) { drawerAction(t.dataset.act); return; }
     if (t.dataset.pmethod) { state.pickMethod = t.dataset.pmethod; render(); return; }
+    if (t.dataset.clientOpen) { state.client = t.dataset.clientOpen; state.lastPin = null; clearDirty(['cl-']); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (t.dataset.cseg) { state.cseg = t.dataset.cseg; render(); return; }
     if (t.dataset.batchGo) { state.batch = t.dataset.batchGo; state.filter = 'all'; setView('samples'); return; }
     const a = t.dataset.action;
     if (a === 'enter-demo') toggleDemo(true);
@@ -1315,6 +1448,28 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       catch (e) { toast(e.message); t.disabled = false; }
     }
     else if (a === 'demo-reset') { if (confirm('Reset the demo? This deletes every sample, visitor and change made in this demo and restores the starting records.')) { window.AGRILAB_DEMO.reset(); signOut(true); toast('Demo data reset'); } }
+    else if (a === 'client-close') { state.client = null; state.lastPin = null; clearDirty(['cl-']); render(); }
+    else if (a === 'client-save') {
+      if (!canWriteNow()) return;
+      const c = { id: state.client, name: $('#cl-name').value.trim(), phone: $('#cl-phone').value.trim(), email: $('#cl-email').value.trim(), type: $('#cl-type').value, segment: $('#cl-seg').value, county: $('#cl-county').value, landmark: $('#cl-landmark').value.trim() };
+      const j = await call('saveClient', { client: c }, 'Client saved');
+      if (j) { const i = state.live.clients.findIndex(x => x.id === j.client.id); if (i >= 0) state.live.clients[i] = j.client; clearDirty(['cl-']); render(); }
+    }
+    else if (a === 'client-pin') {
+      if (!canWriteNow()) return;
+      const j = await call('setClientPin', { id: state.client }, 'Portal PIN created');
+      if (j) { const i = state.live.clients.findIndex(x => x.id === j.client.id); if (i >= 0) state.live.clients[i] = j.client; state.lastPin = { id: j.client.id, pin: j.pin }; render(); }
+    }
+    else if (a === 'copy-invite') { const pre = document.querySelector('.box pre.msg'); if (pre) copy(pre.textContent); }
+    else if (a === 'tier-add') { const d = state.tierDraft; const last = d.tiers[d.tiers.length - 1] || { minSpend: 0, discount: 0 }; d.tiers.push({ name: 'New tier', minSpend: last.minSpend + 50000, minTests: 0, minMonths: 0, discount: Math.min(50, last.discount + 5) }); render(); }
+    else if (a === 'tier-del') { state.tierDraft.tiers.splice(Number(t.dataset.i), 1); render(); }
+    else if (a === 'tier-reset') { state.tierDraft = null; render(); }
+    else if (a === 'tier-save') {
+      if (!canWriteNow()) return;
+      const d = state.tierDraft;
+      const j = await call('saveSettings', { settings: { tiers: d.tiers, period: d.period, retestDays: d.retestDays } }, 'Loyalty tiers saved');
+      if (j) { state.live.settings = j.settings; state.tierDraft = null; render(); }
+    }
     else if (a === 'copy-visit') copy(visitUrl());
     else if (a === 'export-visitors') saveFile(`agrilab-visitors-${dayKey(now())}.csv`, visitorsCsv(), 'text/csv');
     else if (a === 'export-csv') {
@@ -1331,8 +1486,11 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && state.selected) { clearDirty(['r-', 'p-', 'd-']); state.selected = null; renderDrawer(); } });
   document.addEventListener('input', ev => {
     trackDirty(ev.target);
-    if (ev.target.id === 'search' || ev.target.id === 'v-search') {
-      const id = ev.target.id; if (id === 'search') state.search = ev.target.value; else state.vsearch = ev.target.value;
+    const tm = ev.target.id && ev.target.id.match(/^tier-(\d+)-(\w+)$/);
+    if (tm && state.tierDraft) { const k = tm[2]; state.tierDraft.tiers[Number(tm[1])][k] = k === 'name' ? ev.target.value : Number(ev.target.value) || 0; return; }
+    if (ev.target.id === 'tier-retest' && state.tierDraft) { state.tierDraft.retestDays = Number(ev.target.value) || 30; return; }
+    if (ev.target.id === 'search' || ev.target.id === 'v-search' || ev.target.id === 'c-search') {
+      const id = ev.target.id; if (id === 'search') state.search = ev.target.value; else if (id === 'v-search') state.vsearch = ev.target.value; else state.csearch = ev.target.value;
       const pos = ev.target.selectionStart; render(); const s = document.getElementById(id); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (e) {} }
     }
     else if (ev.target.closest && ev.target.closest('#newForm')) updateNewSummary();
@@ -1343,6 +1501,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     if (ev.target.closest && ev.target.closest('#newForm')) updateNewSummary();
     if (ev.target.id === 'co-day') { closeDay = ev.target.value; render(); }
     if (ev.target.id === 'batchSel') { state.batch = ev.target.value; render(); }
+    if (ev.target.id === 'tier-period' && state.tierDraft) { state.tierDraft.period = ev.target.value; }
     if (ev.target.dataset && (ev.target.dataset.pick || ev.target.dataset.dpick)) {
       const bag = ev.target.dataset.pick ? state.picked : (state.dpicked = state.dpicked || {}); const id = ev.target.dataset.pick || ev.target.dataset.dpick;
       if (ev.target.checked) bag[id] = true; else delete bag[id];
@@ -1393,7 +1552,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
 
   // ---------- boot ----------
   const startView = (location.hash || '').replace('#', '');
-  if (['dashboard', 'plan', 'samples', 'new', 'visitors', 'stock', 'closeout'].includes(startView)) state.view = startView;
+  if (['dashboard', 'plan', 'samples', 'new', 'clients', 'visitors', 'stock', 'closeout'].includes(startView)) state.view = startView;
   document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === state.view)));
   render();
 

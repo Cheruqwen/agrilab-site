@@ -62,7 +62,9 @@ In the **Staff** tab, add one row per person:
 
 Paste the new code, save, then go to **Deploy → Manage deployments → pencil icon → Version: New version → Deploy**. The URL stays the same, so `config.js` does not change.
 
-If the new code adds columns or tabs (the November 2026 update did: batches, sample condition, county and landmark, consultations, disposal and the Visitors tab), also choose **`setup`** in the toolbar and click **Run** once. It adds the new columns at the end of the Samples tab and creates the Visitors tab. Existing records are kept.
+If the new code adds columns or tabs (the November 2026 updates did: batches, sample condition, county and landmark, consultations, disposal, farm elements, and the Visitors, Clients and Settings tabs), also choose **`setup`** in the toolbar and click **Run** once. It adds the new columns at the end of the Samples tab and creates the new tabs. Existing records are kept.
+
+Samples logged before the Clients tab existed are not linked to a client account, so they don't count towards loyalty tiers or show in the client portal.
 
 ## Good to know
 
@@ -73,4 +75,6 @@ If the new code adds columns or tabs (the November 2026 update did: batches, sam
 - **Payment comes first.** A sample can only go into a test batch once it is marked paid in full. A batch holds up to 96 samples.
 - **Sample codes.** Each sample keeps its ID (for example `AGL-261126-004`) and also shows a code made of the date received, the date paid and the date tested: `R261126-P261126-T261127-004`. The paid and tested parts fill in as those steps happen.
 - **Disposal.** Every sample has a dispose-by date two weeks after it arrives. The Work plan lists samples due for disposal; mark them disposed once the bags are thrown away.
+- **Client portal.** Every new sample is linked to a client account by phone number (created automatically). On the Clients tab, the client desk, lab manager or Director gives a client portal access; the PIN is shown once, to send by WhatsApp. Clients sign in at `/portal/` with their phone number and PIN and see only their own reported results.
+- **Loyalty discounts.** The Director sets the tiers on the Clients tab: minimum spend (over the last 12 months or all time), and optionally a minimum number of paid samples and months as a client. When a sample is logged for an existing client, their tier's discount is applied automatically.
 - **Example data.** On the sign-in page, "Explore with example data" shows the system filled with made-up samples. Nothing in that mode is saved.

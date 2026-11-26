@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+<title>Client portal · AgriLab Solutions</title>
+<script>try { var t = localStorage.getItem('agrilab-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap">
+<style>
+/* Client portal: one page per client group, built from the client's own reported results. */
+:root {
+  --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F3F5F9; --ink: #1C1D4A; --text: #3B3E5C; --muted: #5F6380; --line: #E1E4EC;
+  --green: #2D7A38; --green-soft: #DCEBD8; --navy: #33358A; --band: #1C1D4A; --band-ink: #F4F6F0; --band-text: #C9CCE6; --band-muted: #9A9DC4; --band-green: #7CC97F;
+  --good: #2D7A38; --good-soft: #DCEBD8; --warn: #9A5A00; --warn-soft: #FBE9C9; --bad: #B42318; --bad-soft: #FADAD5; --info: #33358A; --info-soft: #E2E3F6;
+  --btn-bg: #2D7A38; --btn-ink: #F7FAF3; --logo-light: block; --logo-dark: none;
+  --font-display: 'Lexend', Verdana, sans-serif; --font-body: 'IBM Plex Sans', Arial, sans-serif; --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #11122B; --surface: #1A1B3D; --surface-2: #222453; --ink: #F1F3F8; --text: #C9CCE6; --muted: #9EA2CC; --line: #2E3164;
+  --green: #7CC97F; --green-soft: #1F3B2A; --navy: #B4B7F5; --band: #0B0C22;
+  --good: #7CC97F; --good-soft: #1E3A28; --warn: #F0B45F; --warn-soft: #3B2C12; --bad: #F3877A; --bad-soft: #3D1C1A; --info: #B4B7F5; --info-soft: #262862;
+  --btn-bg: #5BAE5F; --btn-ink: #0F1A12; --logo-light: none; --logo-dark: block; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-display); color: var(--ink); margin: 0; line-height: 1.15; }
+h2 { font-size: 22px; font-weight: 600; } h3 { font-size: 17px; font-weight: 600; }
+p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid #E5793B; outline-offset: 2px; }
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 12px; min-height: 62px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand img { height: 36px; width: auto; }
+.logo-on-light { display: var(--logo-light); } .logo-on-dark { display: var(--logo-dark); }
+.brand span { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); border-left: 1px solid var(--line); padding-left: 10px; }
+.spacer { flex: 1; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: 999px; padding: 10px 18px; font-weight: 600; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--btn-bg); color: var(--btn-ink); border-color: var(--btn-bg); }
+.btn.small { padding: 6px 13px; font-size: 14px; }
+.btn[disabled] { opacity: 0.55; cursor: wait; }
+.theme-btn { width: 36px; height: 36px; padding: 0; border-radius: 50%; }
+.theme-btn svg { width: 16px; height: 16px; }
+main { padding-bottom: 64px; }
+
+/* Hero band */
+.hero { background: var(--band); color: var(--band-text); padding: 34px 0 30px; }
+.hero .wrap { display: grid; gap: 18px; }
+.hero .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--band-green); }
+.hero h1 { color: var(--band-ink); font-size: clamp(28px, 4.5vw, 42px); font-weight: 600; }
+.hero p { color: var(--band-text); max-width: 64ch; }
+.tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.tile { border-radius: 12px; padding: 14px 16px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); display: grid; gap: 2px; }
+.tile .k { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--band-muted); }
+.tile .v { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: #FFFFFF; line-height: 1.15; }
+.tile .s { font-size: 13.5px; color: var(--band-text); }
+.tile.bad { background: rgba(243, 135, 122, 0.16); border-color: rgba(243, 135, 122, 0.5); } .tile.bad .v { color: #F7A398; }
+.tile.good .v { color: var(--band-green); }
+.tile.warn { background: rgba(240, 180, 95, 0.14); border-color: rgba(240, 180, 95, 0.5); } .tile.warn .v { color: #F5C57F; }
+
+.section { padding-top: 28px; display: grid; gap: 14px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.hint { font-size: 14px; color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.chip { font-family: var(--font-mono); font-size: 12px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: var(--surface-2); color: var(--muted); display: inline-block; }
+.chip.good { background: var(--good-soft); color: var(--good); } .chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); } .chip.info { background: var(--info-soft); color: var(--info); }
+.note { font-size: 13.5px; color: var(--muted); }
+
+/* Element cards */
+.el-head { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.el-head small { display: block; color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.gauge { display: grid; gap: 5px; }
+.gauge .row { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font-size: 15px; }
+.gauge .row b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; font-size: 16px; }
+.gauge .bar { position: relative; height: 10px; border-radius: 99px; background: var(--surface-2); }
+.gauge .band { position: absolute; top: 0; bottom: 0; background: var(--good-soft); border-radius: 99px; border: 1px solid var(--good); opacity: 0.9; }
+.gauge .dot { position: absolute; top: -4px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line); background: var(--good); }
+.gauge .dot.warn { background: #D98A1E; } .gauge .dot.bad { background: var(--bad); }
+.gauge .t { font-size: 12.5px; color: var(--muted); }
+.advice { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.advice li { padding: 8px 10px 8px 32px; border-radius: 8px; position: relative; font-size: 14.5px; background: var(--surface-2); color: var(--ink); }
+.advice li::before { position: absolute; left: 10px; top: 8px; font-weight: 700; }
+.advice li.good { background: var(--good-soft); } .advice li.good::before { content: "✓"; color: var(--good); }
+.advice li.warn { background: var(--warn-soft); } .advice li.warn::before { content: "!"; color: var(--warn); }
+.advice li.bad { background: var(--bad-soft); } .advice li.bad::before { content: "✕"; color: var(--bad); }
+.spark { width: 100%; height: auto; display: block; }
+.spark text { font-family: var(--font-mono); font-size: 10.5px; fill: var(--muted); }
+
+/* Tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; background: var(--surface); }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--surface-2); }
+td.r, th.r { text-align: right; } td.num { font-family: var(--font-mono); }
+tr:last-child td { border-bottom: 0; }
+.pass { display: flex; align-items: center; gap: 8px; }
+.pass .track { width: 90px; height: 8px; border-radius: 99px; background: var(--bad-soft); overflow: hidden; }
+.pass .track span { display: block; height: 100%; background: var(--good); }
+
+/* Banner, loyalty, misc */
+.banner { border-radius: 14px; padding: 18px 20px; display: grid; gap: 4px; }
+.banner h2 { font-size: 20px; }
+.banner.good { background: var(--good-soft); } .banner.warn { background: var(--warn-soft); } .banner.bad { background: var(--bad-soft); }
+.banner.bad h2 { color: var(--bad); }
+.loyal { display: grid; gap: 14px; }
+.loyal .big { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.loyal .big b { font-family: var(--font-display); font-size: 30px; color: var(--ink); }
+.meter { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--green); border-radius: 99px; }
+.ladder { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); }
+.ladder div { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13.5px; display: grid; }
+.ladder div b { color: var(--ink); font-size: 15px; }
+.ladder div.on { border-color: var(--green); background: var(--good-soft); }
+.steps { display: grid; gap: 8px; }
+.step { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); }
+.step small { display: block; color: var(--muted); font-size: 13px; }
+.dots { display: flex; gap: 4px; flex-wrap: wrap; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--good); display: inline-block; }
+.dots i.warn { background: #D98A1E; } .dots i.bad { background: var(--bad); }
+.bars { width: 100%; height: auto; display: block; }
+.bars text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 18px 20px; border-radius: 14px; background: var(--green-soft); }
+.cta p { color: var(--ink); }
+
+/* Sign-in */
+.login { max-width: 460px; margin: 36px auto; display: grid; gap: 16px; }
+.login form { display: grid; gap: 12px; }
+.login label { font-size: 14px; font-weight: 600; color: var(--ink); }
+.login input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--ink); font-size: 16px; }
+.err { color: var(--bad); font-size: 14px; min-height: 1.2em; }
+.demo-list { display: grid; gap: 8px; }
+.demo-c { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.demo-c small { display: block; color: var(--muted); font-size: 13px; }
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 999px; z-index: 60; font-weight: 500; }
+@media print {
+  .top, .no-print, .cta { display: none !important; }
+  .hero { background: none; color: #000; padding: 0; } .hero h1, .tile .v { color: #000; } .tile { border-color: #ccc; }
+  body { font-size: 12px; } .panel { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="../" aria-label="AgriLab Solutions home">
+      <img class="logo-on-light" src="../assets/logo-light.png" alt="AgriLab Solutions">
+      <img class="logo-on-dark" src="../assets/logo-reversed.png" alt="AgriLab Solutions">
+      <span>Client portal</span>
+    </a>
+    <span class="spacer"></span>
+    <button class="btn small" id="outBtn" type="button" hidden>Sign out</button>
+    <button class="btn small theme-btn" id="themeBtn" type="button" aria-label="Switch to dark theme"></button>
+  </div>
+</header>
+<main id="app" aria-live="polite"></main>
+<div id="toastRoot"></div>
+
+<script src="../ops/config.js"></script>
+<script>
+(() => {
+  // ---------- reference data ----------
+  const FIELDS = {
+    moisture: ['Moisture', '%'], protein: ['Protein', '%'], fat: ['Fat (oil)', '%'], fibre: ['Fibre', '%'], ash: ['Ash', '%'], starch: ['Starch', '%'],
+    afb1: ['Aflatoxin B1', 'µg/kg'], aft: ['Total aflatoxin', 'µg/kg'], afm1: ['Aflatoxin M1', 'µg/l'],
+    fum: ['Fumonisin', 'µg/kg'], don: ['DON', 'µg/kg'], zea: ['Zearalenone', 'µg/kg'], ota: ['Ochratoxin A', 'µg/kg']
+  };
+  const TEST_NAMES = { 'NS-01': 'Dry chemistry', 'PR-01': 'Protein', 'OL-01': 'Oil', 'WC-01': 'Wet chemistry', 'SM-01': 'Silage moisture', 'AF-01': 'Aflatoxin', 'AF-02': 'Aflatoxin B1 + total', 'AM-01': 'Aflatoxin M1', 'FS-01': 'FeedSafe Combo', 'MY-01': 'Fumonisin', 'MY-02': 'DON', 'MY-03': 'Zearalenone', 'MY-04': 'Ochratoxin A', 'MP-01': 'Mycotoxin panel' };
+  // Aflatoxin limits. Kenya: the limits on AgriLab reports. EU: limits for groundnuts and cereals sold for direct human consumption, and for milk.
+  const KE = { afb1: 5, aft: 10, afm1: 0.5 };
+  const EU = { afb1: 2, aft: 4, afm1: 0.05 };
+  // General nutrition guides for farmers. A nutritionist may set different targets for a particular herd or flock.
+  const GUIDE = {
+    'Dairy meal or concentrate': { animal: 'dairy cows', protein: [14, 18], fat: [2, 6], moisture: [0, 13] },
+    'Poultry feed': { animal: 'poultry', protein: [16, 22], fat: [2, 7], moisture: [0, 13] },
+    'Pig feed': { animal: 'pigs', protein: [14, 20], fat: [2, 7], moisture: [0, 13] },
+    'Fish feed': { animal: 'fish', protein: [25, 40], fat: [4, 12], moisture: [0, 12] },
+    'Feed ingredient (bran, seed cake, soya, fishmeal)': { moisture: [0, 13] },
+    'Silage': { animal: 'cattle', moisture: [60, 75] },
+    'Hay or fodder': { moisture: [0, 15] },
+    'Maize or other grain': { moisture: [0, 13.5] },
+    'Peanuts (groundnuts)': { moisture: [0, 9] },
+    'Flour': { moisture: [0, 13.5] }
+  };
+  const SEG = {
+    farmer: { title: 'My farm', intro: 'Your feeds, silage and milk: what the results mean for your animals.' },
+    aggregator: { title: 'Supplier quality', intro: 'How each supplier or member is doing, and who needs attention.' },
+    consumer: { title: 'Food safety', intro: 'Is the food you serve safe? Every item, its last test and when to test again.' },
+    trade: { title: 'Consignments', intro: 'Each consignment checked against Kenyan and EU aflatoxin limits.' }
+  };
+  const STATUS = { received: 'Received', analysis: 'Being tested', review: 'Checking results', ready: 'Checking results', reported: 'Ready' };
+
+  // ---------- helpers ----------
+  const $ = s => document.querySelector(s);
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const eat = d => new Date(new Date(d).getTime() + 3 * 3600e3);
+  const fmtDay = d => { if (!d) return '—'; const e = eat(d); return `${e.getUTCDate()} ${MONTHS[e.getUTCMonth()]} ${e.getUTCFullYear()}`; };
+  const fmtShort = d => { const e = eat(d); return `${e.getUTCDate()} ${MONTHS[e.getUTCMonth()]}`; };
+  const kes = n => 'KES ' + Math.round(n || 0).toLocaleString('en-KE');
+  const num = v => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
+  const days = (a, b) => Math.round((new Date(b) - new Date(a)) / 864e5);
+  const elOf = s => (s.element && String(s.element).trim()) || s.sampleType || 'Sample';
+  function toast(m) { $('#toastRoot').innerHTML = `<div class="toast" role="status">${esc(m)}</div>`; setTimeout(() => { $('#toastRoot').innerHTML = ''; }, 2600); }
+  // Worst aflatoxin verdict on a sample against a set of limits: above, close (over 70% of the limit), within, or null if not tested.
+  function safety(s, lim) {
+    let worst = null; const rank = { within: 1, close: 2, above: 3 };
+    ['afb1', 'aft', 'afm1'].forEach(k => {
+      const v = num(s[k]); if (v == null || lim[k] == null) return;
+      const r = v > lim[k] ? 'above' : v > 0.7 * lim[k] ? 'close' : 'within';
+      if (!worst || rank[r] > rank[worst]) worst = r;
+    });
+    return worst;
+  }
+  const SAFE_LABEL = { within: 'Safe', close: 'Close to limit', above: 'Above limit' };
+  const SAFE_CLASS = { within: 'good', close: 'warn', above: 'bad' };
+  function bandOf(s, k) { const g = GUIDE[s.sampleType]; const v = num(s[k]); if (!g || !g[k] || v == null) return null; return v < g[k][0] ? 'low' : v > g[k][1] ? 'high' : 'ok'; }
+  function groups(list) {
+    const m = new Map();
+    list.forEach(s => { const k = elOf(s); if (!m.has(k)) m.set(k, []); m.get(k).push(s); });
+    return [...m.entries()].map(([name, l]) => ({ name, list: l.sort((a, b) => String(b.reportedAt || b.receivedAt).localeCompare(String(a.reportedAt || a.receivedAt))) }))
+      .sort((a, b) => String(b.list[0].reportedAt || '').localeCompare(String(a.list[0].reportedAt || '')));
+  }
+  function saveFile(name, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type })); const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
+  // ---------- talking to the lab ----------
+  const API = ((window.AGRILAB_CONFIG && window.AGRILAB_CONFIG.apiUrl) || '').trim();
+  const KEY = 'agrilab-portal-session';
+  const state = { token: null, data: null, loading: false };
+  async function api(action, payload) {
+    const body = Object.assign({ action, token: state.token }, payload || {});
+    let j;
+    if (window.AGRILAB_LOCAL) { await new Promise(r => setTimeout(r, 120)); j = window.AGRILAB_LOCAL(body); }
+    else {
+      try { j = await (await fetch(API, { method: 'POST', body: JSON.stringify(body) })).json(); }
+      catch (e) { throw Object.assign(new Error('Could not reach the lab. Check your connection and try again.'), { code: 'network' }); }
+    }
+    if (!j.ok) throw Object.assign(new Error(j.message || 'Something went wrong.'), { code: j.error });
+    return j;
+  }
+  async function load() {
+    state.loading = true; render();
+    try { state.data = await api('clientData'); }
+    catch (e) { if (e.code === 'unauthorized') { signOut(); toast(e.message); } else toast(e.message); }
+    state.loading = false; render();
+  }
+  async function signIn(phone, pin) {
+    const j = await api('clientLogin', { phone, pin });
+    state.token = j.token; try { localStorage.setItem(KEY, j.token); } catch (e) {}
+    await load();
+  }
+  function signOut() {
+    if (state.token) api('clientLogout').catch(() => {});
+    state.token = null; state.data = null; try { localStorage.removeItem(KEY); } catch (e) {} render();
+  }
+
+  // ---------- pieces shared by every page ----------
+  function hero(d, tiles) {
+    const seg = SEG[d.client.segment] || SEG.farmer;
+    return `<section class="hero"><div class="wrap">
+      <div><p class="eyebrow">${esc(seg.title)} · ${esc(d.client.county || 'AgriLab client')}</p><h1>Hello, ${esc(d.client.name)}</h1></div>
+      <p>${esc(seg.intro)}</p>
+      <div class="tiles">${tiles.map(t => `<div class="tile ${t.cls || ''}"><span class="k">${esc(t.k)}</span><span class="v">${t.v}</span><span class="s">${esc(t.s || '')}</span></div>`).join('')}</div>
+    </div></section>`;
+  }
+  function loyalty(d) {
+    const l = d.loyalty, tiers = (d.tiers || []).slice().sort((a, b) => a.minSpend - b.minSpend);
+    const nxt = l.next;
+    const needs = nxt ? [l.spend < nxt.minSpend ? `spend ${kes(nxt.minSpend - l.spend)} more` : '', l.tests < (nxt.minTests || 0) ? `test ${nxt.minTests - l.tests} more samples` : '', l.months < (nxt.minMonths || 0) ? `stay ${nxt.minMonths - l.months} more months` : ''].filter(Boolean) : [];
+    const pct = nxt ? Math.min(100, Math.round(l.spend / Math.max(1, nxt.minSpend) * 100)) : 100;
+    return `<section class="wrap section"><div class="panel loyal">
+      <div class="section-head"><h2>Your loyalty discount</h2><span class="hint">The more you test with us, the more you save.</span></div>
+      <div class="big"><b>${esc(l.tier ? l.tier.name : 'Standard')}</b><span class="chip ${l.tier && l.tier.discount ? 'good' : ''}">${l.tier && l.tier.discount ? l.tier.discount + '% off every test' : 'No discount yet'}</span></div>
+      <div class="tiles" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))">
+        ${[['Spent', kes(l.spend), l.period === 'all' ? 'all time' : 'last 12 months'], ['Samples tested', l.tests, 'paid'], ['Client for', l.months + ' months', 'since ' + fmtDay(l.since)]]
+          .map(([k, v, s]) => `<div class="panel" style="padding:12px 14px;gap:2px"><span class="note mono" style="text-transform:uppercase;font-size:11.5px">${k}</span><b style="font-family:var(--font-display);font-size:22px;color:var(--ink)">${esc(v)}</b><span class="note">${esc(s)}</span></div>`).join('')}
+      </div>
+      ${nxt ? `<div style="display:grid;gap:6px"><div class="meter"><span style="width:${pct}%"></span></div><p>To reach <b>${esc(nxt.name)}</b> (${nxt.discount}% off): ${esc(needs.join(', '))}.</p></div>` : '<p>You are on our top tier. Thank you for testing with us.</p>'}
+      <div class="ladder">${tiers.map(t => `<div class="${l.tier && t.name === l.tier.name ? 'on' : ''}"><b>${esc(t.name)} · ${t.discount}%</b><span class="note">from ${kes(t.minSpend)}${t.minTests ? ', ' + t.minTests + ' tests' : ''}${t.minMonths ? ', ' + t.minMonths + ' months' : ''}</span></div>`).join('')}</div>
+    </div></section>`;
+  }
+  function inProgress(d) {
+    const open = d.samples.filter(s => s.status !== 'reported');
+    if (!open.length) return '';
+    return `<section class="wrap section"><div class="section-head"><h2>In progress</h2><span class="hint">${open.length} sample${open.length === 1 ? '' : 's'}</span></div>
+      <div class="steps">${open.map(s => `<div class="step"><span class="chip ${s.paid ? 'info' : 'warn'}">${s.paid ? esc(STATUS[s.status]) : 'Awaiting payment'}</span>
+        <span><b>${esc(elOf(s))}</b><small>${esc((s.tests || []).map(c => TEST_NAMES[c] || c).join(', '))} · received ${esc(fmtShort(s.receivedAt))}</small></span>
+        <span class="note">${s.paid ? 'Expected ' + esc(fmtShort(s.dueAt)) : 'Pay ' + kes(s.price) + ' by M-Pesa to start'}</span></div>`).join('')}</div></section>`;
+  }
+  function reportsList(d, opts) {
+    const done = d.samples.filter(s => s.status === 'reported');
+    if (!done.length) return '';
+    return `<section class="wrap section"><div class="section-head"><h2>All reports</h2><button class="btn small no-print" type="button" data-act="csv">Download results (CSV)</button></div>
+      <div class="tbl"><table><thead><tr><th>Date</th><th>${esc(opts.elLabel)}</th><th>Sample</th><th>Results</th><th></th></tr></thead><tbody>
+      ${done.slice(0, 60).map(s => `<tr><td class="num">${esc(fmtShort(s.reportedAt || s.receivedAt))}</td><td>${esc(elOf(s))}</td><td>${esc(s.sampleType)}</td>
+        <td style="white-space:normal;min-width:220px">${Object.keys(FIELDS).filter(k => num(s[k]) != null).map(k => `${FIELDS[k][0]} <b class="num">${s[k]}</b>`).join(' · ')}</td>
+        <td><button class="btn small no-print" type="button" data-report="${esc(s.id)}">Report</button></td></tr>`).join('')}
+      </tbody></table></div></section>`;
+  }
+  function cta(text) {
+    return `<section class="wrap section"><div class="cta"><p>${text}</p><a class="btn primary" href="https://wa.me/254701321020?text=${encodeURIComponent('Hello AgriLab, I would like to book a test.')}" target="_blank" rel="noopener">Book a test on WhatsApp</a></div></section>`;
+  }
+  const spark = (pts, lo, hi, unit) => {
+    if (pts.length < 2) return '';
+    const W = 320, H = 90, L = 30, Rr = 10, T = 10, B = 22;
+    const vals = pts.map(p => p.v), min = Math.min(...vals, lo != null ? lo : Infinity) * 0.9, max = Math.max(...vals, hi != null ? hi : -Infinity) * 1.08;
+    const x = i => L + (W - L - Rr) * (i / (pts.length - 1)), y = v => T + (H - T - B) * (1 - (v - min) / ((max - min) || 1));
+    const band = lo != null && hi != null ? `<rect x="${L}" y="${y(hi)}" width="${W - L - Rr}" height="${Math.max(2, y(lo) - y(hi))}" fill="var(--good-soft)"></rect>` : '';
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="Trend over ${pts.length} tests">${band}
+      <polyline points="${pts.map((p, i) => x(i) + ',' + y(p.v)).join(' ')}" fill="none" stroke="var(--navy)" stroke-width="2"></polyline>
+      ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.v)}" r="3.5" fill="var(--navy)"></circle>`).join('')}
+      <text x="${L - 4}" y="${y(max / 1.08) + 4}" text-anchor="end">${(max / 1.08).toFixed(0)}</text><text x="${L - 4}" y="${y(min / 0.9) + 4}" text-anchor="end">${(min / 0.9).toFixed(0)}</text>
+      <text x="${L}" y="${H - 6}">${esc(fmtShort(pts[0].d))}</text><text x="${W - Rr}" y="${H - 6}" text-anchor="end">${esc(fmtShort(pts[pts.length - 1].d))}</text></svg><p class="note">${unit} over your last ${pts.length} tests${band ? '; green is the target range' : ''}.</p>`;
+  };
+
+  // ---------- Farmer: My farm ----------
+  function farmerAdvice(s) {
+    const g = GUIDE[s.sampleType] || {}; const out = []; const animal = g.animal || 'your animals';
+    const p = bandOf(s, 'protein'), f = bandOf(s, 'fat'), m = bandOf(s, 'moisture');
+    if (p === 'low') out.push(['bad', `Protein is low for ${animal}: expect slower weight gain, less milk or fewer eggs.`]);
+    if (p === 'high') out.push(['warn', 'Protein is higher than needed: you may be paying for protein the animals don’t use.']);
+    if (f === 'high') out.push(['bad', 'Fat is high: watch for loose stool and poor appetite. Mix with a lower-fat feed.']);
+    if (s.sampleType === 'Silage') {
+      if (m === 'high') out.push(['bad', 'Silage is too wet: it may sour and lose nutrients. Wilt the next cut longer before ensiling.']);
+      if (m === 'low') out.push(['warn', 'Silage is too dry: mould risk and animals may eat less. Seal the pit tightly.']);
+    } else if (m === 'high') out.push(['bad', 'Too much moisture: mould and aflatoxin can grow. Store it dry and use it soon.']);
+    const sf = safety(s, KE);
+    if (sf === 'above') out.push(['bad', 'Aflatoxin is above the legal limit. Don’t feed it to milking cows. Call us for advice.']);
+    if (sf === 'close') out.push(['warn', 'Aflatoxin is close to the limit. Keep feed dry and test the next batch.']);
+    if (!out.length) out.push(['good', 'On target. Keep feeding as you are.']);
+    return out;
+  }
+  function gauge(s, k) {
+    const g = GUIDE[s.sampleType]; const v = num(s[k]); if (v == null) return '';
+    const [label, unit] = FIELDS[k];
+    if (!g || !g[k]) return `<div class="gauge"><div class="row"><span>${label}</span><b>${v} ${unit}</b></div></div>`;
+    const [lo, hi] = g[k]; const max = Math.max(hi * 1.4, v * 1.1, 1);
+    const b = bandOf(s, k); const cls = b === 'ok' ? '' : (k === 'protein' && b === 'high') ? 'warn' : 'bad';
+    return `<div class="gauge"><div class="row"><span>${label}</span><span><b>${v} ${unit}</b> <span class="chip ${b === 'ok' ? 'good' : cls}">${b === 'ok' ? 'On target' : b === 'low' ? 'Low' : 'High'}</span></span></div>
+      <div class="bar"><span class="band" style="left:${lo / max * 100}%;width:${(hi - lo) / max * 100}%"></span><span class="dot ${cls}" style="left:${Math.min(100, v / max * 100)}%"></span></div>
+      <span class="t">Target ${lo ? lo + '–' : 'up to '}${hi} ${unit}</span></div>`;
+  }
+  function viewFarmer(d) {
+    const done = d.samples.filter(s => s.status === 'reported');
+    const gs = groups(done);
+    const recent = done.filter(s => days(s.reportedAt || s.receivedAt, new Date()) <= 90);
+    const unsafe = recent.filter(s => safety(s, KE) === 'above');
+    const offTarget = gs.filter(g => farmerAdvice(g.list[0]).some(a => a[0] === 'bad')).length;
+    const cards = gs.map(g => {
+      const s = g.list[0]; const key = s.sampleType === 'Silage' ? 'moisture' : 'protein';
+      const pts = g.list.filter(x => num(x[key]) != null).slice(0, 8).reverse().map(x => ({ v: num(x[key]), d: x.reportedAt || x.receivedAt }));
+      const gd = GUIDE[s.sampleType] || {}; const sf = safety(s, KE);
+      return `<article class="panel"><div class="el-head"><div><h3>${esc(g.name)}</h3><small>${esc(s.sampleType)} · tested ${esc(fmtDay(s.reportedAt))} · ${g.list.length} test${g.list.length === 1 ? '' : 's'}</small></div>${sf ? `<span class="chip ${SAFE_CLASS[sf]}">Aflatoxin: ${SAFE_LABEL[sf]}</span>` : ''}</div>
+        ${['protein', 'fat', 'moisture'].map(k => gauge(s, k)).join('')}
+        ${['afb1', 'aft', 'afm1'].filter(k => num(s[k]) != null).map(k => `<div class="gauge"><div class="row"><span>${FIELDS[k][0]}</span><span><b>${s[k]} ${FIELDS[k][1]}</b> <span class="note">limit ${KE[k]}</span></span></div></div>`).join('')}
+        <ul class="advice">${farmerAdvice(s).map(([c, t]) => `<li class="${c}">${esc(t)}</li>`).join('')}</ul>
+        ${spark(pts, gd[key] ? gd[key][0] : null, gd[key] ? gd[key][1] : null, FIELDS[key][0])}
+      </article>`;
+    }).join('');
+    const compare = gs.length > 1 ? `<section class="wrap section"><div class="section-head"><h2>Compare your feeds</h2><span class="hint">latest result for each</span></div>
+      <div class="tbl"><table><thead><tr><th>Feed or silage</th><th class="r">Protein %</th><th class="r">Fat %</th><th class="r">Moisture %</th><th class="r">Aflatoxin</th><th>Verdict</th></tr></thead><tbody>
+      ${gs.map(g => { const s = g.list[0]; const adv = farmerAdvice(s); const worst = adv.some(a => a[0] === 'bad') ? 'bad' : adv.some(a => a[0] === 'warn') ? 'warn' : 'good';
+        const af = num(s.afb1) != null ? s.afb1 + ' B1' : num(s.aft) != null ? s.aft + ' total' : num(s.afm1) != null ? s.afm1 + ' M1' : '—';
+        return `<tr><td>${esc(g.name)}</td>${['protein', 'fat', 'moisture'].map(k => `<td class="r num">${num(s[k]) == null ? '—' : s[k]}</td>`).join('')}<td class="r num">${esc(af)}</td><td><span class="chip ${worst}">${worst === 'good' ? 'Good' : worst === 'warn' ? 'Check' : 'Act now'}</span></td></tr>`; }).join('')}
+      </tbody></table></div></section>` : '';
+    return hero(d, [
+      { k: 'Feeds and silage', v: gs.length, s: done.length + ' reports in total' },
+      { k: 'Safety, last 90 days', v: unsafe.length ? unsafe.length + ' unsafe' : 'All safe', s: unsafe.length ? 'aflatoxin above the limit' : 'no aflatoxin problems', cls: unsafe.length ? 'bad' : 'good' },
+      { k: 'Need attention', v: offTarget, s: offTarget ? 'feeds off target' : 'everything on target', cls: offTarget ? 'warn' : 'good' },
+      { k: 'Last result', v: done.length ? esc(fmtShort(done[0].reportedAt)) : '—', s: done.length ? elOf(done[0]) : 'no reports yet' }
+    ]) + inProgress(d)
+      + (gs.length ? `<section class="wrap section"><div class="section-head"><h2>Your feeds and silage</h2><span class="hint">Targets are a general guide; ask us for targets for your herd.</span></div><div class="grid">${cards}</div></section>` : '<section class="wrap section"><div class="panel"><p>Your results will appear here after your first report.</p></div></section>')
+      + compare + loyalty(d) + cta('<b>Not sure what to change?</b> Book a nutritional consultation with your next test.') + reportsList(d, { elLabel: 'Feed or silage' });
+  }
+
+  // ---------- Aggregator: supplier quality ----------
+  function passes(s) { const sf = safety(s, KE); const m = bandOf(s, 'moisture'); return sf !== 'above' && m !== 'high'; }
+  function viewAggregator(d) {
+    const yearAgo = Date.now() - 365 * 864e5;
+    const done = d.samples.filter(s => s.status === 'reported' && new Date(s.receivedAt).getTime() >= yearAgo);
+    const gs = groups(done).map(g => {
+      const n = g.list.length, ok = g.list.filter(passes).length;
+      const avg = k => { const v = g.list.map(x => num(x[k])).filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length) : null; };
+      const worstAf = Math.max(...g.list.map(x => Math.max(num(x.afb1) || 0, num(x.aft) || 0, (num(x.afm1) || 0) * 100)));
+      const last = g.list[0];
+      return { name: g.name, n, ok, rate: n ? ok / n : 1, moist: avg('moisture'), prot: avg('protein'), last, lastSafe: safety(last, KE), worstAf, unit: num(last.afm1) != null ? 'µg/l M1' : 'µg/kg' };
+    }).sort((a, b) => a.rate - b.rate || b.n - a.n);
+    const total = done.length, ok = done.filter(passes).length;
+    const flagged = gs.filter(g => g.rate < 0.8 || g.lastSafe === 'above');
+    // Last six months: samples and failures per month.
+    const now = eat(new Date()); const months = [];
+    for (let i = 5; i >= 0; i--) { const dt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)); months.push({ y: dt.getUTCFullYear(), m: dt.getUTCMonth(), n: 0, bad: 0 }); }
+    done.forEach(s => { const e = eat(s.receivedAt); const mo = months.find(x => x.y === e.getUTCFullYear() && x.m === e.getUTCMonth()); if (mo) { mo.n++; if (!passes(s)) mo.bad++; } });
+    const W = 560, H = 170, mx = Math.max(4, ...months.map(x => x.n)), bw = (W - 20) / 6;
+    const chart = `<svg class="bars" viewBox="0 0 ${W} ${H}" role="img" aria-label="Samples and failures per month">${months.map((mo, i) => {
+      const x = 10 + i * bw + 10, w = bw - 20, hOk = (mo.n - mo.bad) / mx * (H - 40), hBad = mo.bad / mx * (H - 40), base = H - 22;
+      return `<rect x="${x}" y="${base - hOk}" width="${w}" height="${hOk}" rx="3" fill="var(--good)"></rect><rect x="${x}" y="${base - hOk - hBad}" width="${w}" height="${hBad}" rx="3" fill="var(--bad)"></rect>
+        <text x="${x + w / 2}" y="${H - 6}" text-anchor="middle">${MONTHS[mo.m]}</text>${mo.n ? `<text x="${x + w / 2}" y="${base - hOk - hBad - 5}" text-anchor="middle">${mo.n}</text>` : ''}`; }).join('')}</svg>
+      <p class="note"><span class="chip good">Passed</span> <span class="chip bad">Failed</span> Failed means aflatoxin above the limit or moisture too high.</p>`;
+    return hero(d, [
+      { k: 'Samples, 12 months', v: total, s: gs.length + ' suppliers or members' },
+      { k: 'Pass rate', v: total ? Math.round(ok / total * 100) + '%' : '—', s: (total - ok) + ' failed', cls: total && ok / total < 0.8 ? 'warn' : 'good' },
+      { k: 'Flagged', v: flagged.length, s: flagged.length ? 'need follow-up' : 'none need follow-up', cls: flagged.length ? 'bad' : 'good' },
+      { k: 'Last result', v: done.length ? esc(fmtShort(done[0].reportedAt)) : '—', s: done.length ? elOf(done[0]) : '' }
+    ]) + inProgress(d)
+      + (flagged.length ? `<section class="wrap section"><div class="banner bad"><h2>Follow up: ${esc(flagged.map(g => g.name).join(', '))}</h2><p>These failed recently or pass less than 80% of the time. Test their next delivery before you accept it.</p></div></section>` : '')
+      + `<section class="wrap section"><div class="section-head"><h2>Suppliers and members</h2><span class="hint">worst first</span></div>
+        <div class="tbl"><table><thead><tr><th>Supplier or member</th><th class="r">Samples</th><th>Pass rate</th><th class="r">Avg moisture</th><th class="r">Avg protein</th><th class="r">Worst aflatoxin</th><th>Last test</th></tr></thead><tbody>
+        ${gs.map(g => `<tr><td><b>${esc(g.name)}</b></td><td class="r num">${g.n}</td><td><span class="pass"><span class="track"><span style="width:${Math.round(g.rate * 100)}%"></span></span><span class="num">${Math.round(g.rate * 100)}%</span></span></td>
+          <td class="r num">${g.moist == null ? '—' : g.moist.toFixed(1) + '%'}</td><td class="r num">${g.prot == null ? '—' : g.prot.toFixed(1) + '%'}</td>
+          <td class="r num">${g.worstAf ? (g.unit === 'µg/l M1' ? (g.worstAf / 100).toFixed(2) : g.worstAf) + ' ' + g.unit : '—'}</td>
+          <td>${esc(fmtShort(g.last.reportedAt))} ${g.lastSafe ? `<span class="chip ${SAFE_CLASS[g.lastSafe]}">${SAFE_LABEL[g.lastSafe]}</span>` : ''}</td></tr>`).join('') || '<tr><td colspan="7">No reports in the last 12 months.</td></tr>'}
+        </tbody></table></div></section>
+      <section class="wrap section"><div class="panel"><div class="section-head"><h2>Month by month</h2><span class="hint">last six months</span></div>${chart}</div></section>`
+      + loyalty(d) + cta('<b>Testing every delivery?</b> Ask us about a monthly plan with priority slots.') + reportsList(d, { elLabel: 'Supplier or member' });
+  }
+
+  // ---------- Consumer: food safety ----------
+  function viewConsumer(d) {
+    const done = d.samples.filter(s => s.status === 'reported');
+    const gs = groups(done); const every = d.retestDays || 30;
+    const items = gs.map(g => { const s = g.list[0]; const age = days(s.reportedAt || s.receivedAt, new Date()); return { g, s, sf: safety(s, KE) || 'within', age, due: every - age }; });
+    const unsafe = items.filter(i => i.sf === 'above'), overdue = items.filter(i => i.sf !== 'above' && i.due < 0);
+    const banner = unsafe.length
+      ? `<div class="banner bad"><h2>Stop using: ${esc(unsafe.map(i => i.g.name).join(', '))}</h2><p>The last test found aflatoxin above the legal limit. Set this food aside and call us: 0701 321 020.</p></div>`
+      : overdue.length ? `<div class="banner warn"><h2>Time to retest: ${esc(overdue.map(i => i.g.name).join(', '))}</h2><p>It has been more than ${every} days since these were tested. Bring a sample from your current stock.</p></div>`
+      : items.length ? `<div class="banner good"><h2>All food tested in the last ${every} days is safe.</h2><p>Every item below was within the legal aflatoxin limit at its last test.</p></div>` : '';
+    const cards = items.map(i => `<article class="panel"><div class="el-head"><div><h3>${esc(i.g.name)}</h3><small>${esc(i.s.sampleType)} · tested ${esc(fmtDay(i.s.reportedAt))}</small></div><span class="chip ${SAFE_CLASS[i.sf]}">${SAFE_LABEL[i.sf]}</span></div>
+        ${['afb1', 'aft', 'afm1'].filter(k => num(i.s[k]) != null).map(k => `<div class="gauge"><div class="row"><span>${FIELDS[k][0]}</span><span><b>${i.s[k]} ${FIELDS[k][1]}</b> <span class="note">limit ${KE[k]}</span></span></div></div>`).join('')}
+        <p>${i.sf === 'above' ? '<b>Do not serve.</b> ' : ''}${i.due < 0 ? `<span class="chip warn">Retest overdue by ${-i.due} days</span>` : `Next test due <b>${esc(fmtDay(new Date(Date.now() + i.due * 864e5)))}</b>`}</p>
+        <div><span class="note">Test history</span><div class="dots">${i.g.list.slice(0, 12).reverse().map(x => `<i class="${SAFE_CLASS[safety(x, KE) || 'within']}" title="${esc(fmtDay(x.reportedAt))}: ${SAFE_LABEL[safety(x, KE) || 'within']}"></i>`).join('')}</div></div>
+      </article>`).join('');
+    return hero(d, [
+      { k: 'Food items tracked', v: items.length, s: done.length + ' tests in total' },
+      { k: 'Safe now', v: items.length - unsafe.length, s: 'of ' + items.length + ' items', cls: unsafe.length ? 'bad' : 'good' },
+      { k: 'Retests due', v: overdue.length + items.filter(i => i.due >= 0 && i.due <= 7).length, s: 'overdue or within a week', cls: overdue.length ? 'warn' : '' },
+      { k: 'Last test', v: done.length ? esc(fmtShort(done[0].reportedAt)) : '—', s: done.length ? elOf(done[0]) : '' }
+    ]) + `<section class="wrap section">${banner}<div class="row no-print" style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" type="button" data-act="print">Print safety summary</button><span class="note" style="align-self:center">For inspectors, parents and your board.</span></div></section>`
+      + inProgress(d)
+      + (items.length ? `<section class="wrap section"><div class="section-head"><h2>Your food</h2><span class="hint">retest every ${every} days and with every new supplier</span></div><div class="grid">${cards}</div></section>` : '')
+      + `<section class="wrap section"><div class="grid">${[['Store dry', 'Keep flour, maize and peanuts off the floor, in a dry, airy store.'], ['Test new suppliers', 'Test the first delivery from any new supplier before you serve it.'], ['Throw out mouldy food', 'Mould you can see means aflatoxin you can’t. Don’t sort it; discard it.']].map(([h, t]) => `<div class="panel"><h3>${h}</h3><p>${t}</p></div>`).join('')}</div></section>`
+      + loyalty(d) + cta('<b>Cooking for children or the public?</b> Test every delivery of maize, flour, peanuts and milk.') + reportsList(d, { elLabel: 'Food item' });
+  }
+
+  // ---------- Importer or exporter: consignments ----------
+  function viewTrade(d) {
+    const done = d.samples.filter(s => s.status === 'reported');
+    const rows = done.map(s => ({ s, ke: safety(s, KE), eu: safety(s, EU) })).filter(r => r.ke || r.eu);
+    const keOk = rows.filter(r => r.ke !== 'above').length, euOk = rows.filter(r => r.eu !== 'above').length, none = rows.filter(r => r.ke === 'above').length;
+    const mark = v => v === 'above' ? '<span class="chip bad">Not cleared</span>' : v === 'close' ? '<span class="chip warn">Near limit</span>' : '<span class="chip good">Cleared</span>';
+    const other = done.filter(s => !rows.some(r => r.s === s));
+    return hero(d, [
+      { k: 'Consignments tested', v: rows.length, s: done.length + ' reports in total' },
+      { k: 'Cleared for Kenya', v: keOk, s: 'of ' + rows.length, cls: keOk === rows.length ? 'good' : 'warn' },
+      { k: 'Cleared for the EU', v: euOk, s: 'stricter limits', cls: euOk === rows.length ? 'good' : 'warn' },
+      { k: 'Not cleared', v: none, s: 'above Kenyan limits', cls: none ? 'bad' : 'good' }
+    ]) + inProgress(d)
+      + `<section class="wrap section"><div class="section-head"><h2>Consignments</h2><button class="btn small no-print" type="button" data-act="csv">Download (CSV)</button></div>
+        <div class="tbl"><table><thead><tr><th>Consignment or lot</th><th>Product</th><th>Tested</th><th class="r">B1 µg/kg</th><th class="r">Total µg/kg</th><th>Kenya</th><th>EU</th><th></th></tr></thead><tbody>
+        ${rows.map(r => `<tr><td><b>${esc(elOf(r.s))}</b></td><td>${esc(r.s.sampleType)}</td><td class="num">${esc(fmtShort(r.s.reportedAt))}</td><td class="r num">${num(r.s.afb1) == null ? '—' : r.s.afb1}</td><td class="r num">${num(r.s.aft) == null ? '—' : r.s.aft}</td><td>${mark(r.ke)}</td><td>${mark(r.eu)}</td><td><button class="btn small no-print" type="button" data-report="${esc(r.s.id)}">Certificate</button></td></tr>`).join('') || '<tr><td colspan="8">No aflatoxin results yet.</td></tr>'}
+        </tbody></table></div></section>
+      <section class="wrap section"><div class="grid">
+        <div class="panel"><h3>Limits we check against</h3><div class="tbl"><table><thead><tr><th>Aflatoxin</th><th class="r">Kenya</th><th class="r">EU</th></tr></thead><tbody>
+          <tr><td>B1, µg/kg</td><td class="r num">${KE.afb1}</td><td class="r num">${EU.afb1}</td></tr><tr><td>Total, µg/kg</td><td class="r num">${KE.aft}</td><td class="r num">${EU.aft}</td></tr><tr><td>M1 in milk, µg/l</td><td class="r num">${KE.afm1}</td><td class="r num">${EU.afm1}</td></tr></tbody></table></div>
+          <p class="note">EU figures are for groundnuts and cereals sold for direct human consumption. Check your buyer’s contract for their limits.</p></div>
+        <div class="panel"><h3>Before you ship or accept</h3><ul class="advice"><li class="good">Test every lot on arrival, before it is mixed with other stock.</li><li class="warn">Near the limit? Sort and retest before processing.</li><li class="bad">Not cleared? Keep the lot apart and call us about a retest.</li></ul></div>
+      </div></section>`
+      + (other.length ? reportsList({ samples: other }, { elLabel: 'Consignment' }) : '')
+      + loyalty(d) + cta('<b>New consignment arriving?</b> Book its aflatoxin test before it is unloaded.');
+  }
+
+  // ---------- downloads ----------
+  function reportHtml(s, d) {
+    const trade = d.client.segment === 'trade';
+    const rows = Object.keys(FIELDS).filter(k => num(s[k]) != null).map(k => `<tr><td>${FIELDS[k][0]}</td><td style="text-align:right">${s[k]}</td><td>${FIELDS[k][1]}</td><td>${KE[k] != null ? KE[k] + (trade ? ' (EU ' + EU[k] + ')' : '') : '—'}</td></tr>`).join('');
+    const ke = safety(s, KE), eu = safety(s, EU);
+    return `<!doctype html><html><head><meta charset="utf-8"><title>AgriLab ${trade ? 'certificate' : 'report'} ${esc(s.id)}</title><style>body{font-family:Arial,sans-serif;color:#1C1D4A;max-width:760px;margin:32px auto;padding:0 20px;font-size:14px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border-bottom:1px solid #E0E3EB;padding:7px 6px;text-align:left}th{background:#F2F4F8;font-size:12px;text-transform:uppercase}.small{color:#61657F;font-size:12px}</style></head><body>
+      <h1>AgriLab Solutions · ${trade ? 'Aflatoxin certificate' : 'Test report'}</h1><p class="small">Horizon Business Park, Kenol · +254 701 321 020</p>
+      <table><tr><td>Sample</td><td>${esc(s.id)}</td></tr><tr><td>Client</td><td>${esc(d.client.name)}</td></tr><tr><td>${trade ? 'Consignment' : 'Item'}</td><td>${esc(elOf(s))} (${esc(s.sampleType)})</td></tr><tr><td>Received</td><td>${esc(fmtDay(s.receivedAt))}</td></tr><tr><td>Reported</td><td>${esc(fmtDay(s.reportedAt))}</td></tr></table>
+      <table><tr><th>Parameter</th><th style="text-align:right">Result</th><th>Unit</th><th>Limit</th></tr>${rows}</table>
+      ${ke ? `<p><b>Kenya: ${ke === 'above' ? 'not cleared' : 'cleared'}</b>${trade && eu ? ` · <b>EU: ${eu === 'above' ? 'not cleared' : 'cleared'}</b>` : ''}</p>` : ''}
+      <p class="small">Results relate only to the sample tested. Signed off by two AgriLab staff. AgriLab Solutions is working towards ISO/IEC 17025.</p></body></html>`;
+  }
+  function csv(d) {
+    const cols = ['id', 'element', 'sampleType', 'receivedAt', 'reportedAt', ...Object.keys(FIELDS)];
+    const q = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    return [cols.join(',')].concat(d.samples.filter(s => s.status === 'reported').map(s => cols.map(c => q(c === 'element' ? elOf(s) : s[c])).join(','))).join('\n');
+  }
+
+  // ---------- sign-in ----------
+  function viewLogin() {
+    const demo = window.AGRILAB_DEMO && window.AGRILAB_DEMO.clients;
+    return `<div class="wrap"><div class="login">
+      <div><h1 style="font-size:30px">Client portal</h1><p class="note" style="font-size:15px;margin-top:6px">Your results, trends and loyalty discount in one place.</p></div>
+      ${API ? `<form class="panel" id="loginForm" novalidate>
+        <div><label for="l-phone">Phone number</label><input id="l-phone" inputmode="tel" autocomplete="tel" placeholder="07xx xxx xxx"></div>
+        <div><label for="l-pin">PIN</label><input id="l-pin" type="password" inputmode="numeric" autocomplete="current-password"></div>
+        <button class="btn primary" type="submit" id="l-go">Sign in</button><p class="err" id="l-err" role="alert"></p>
+        <p class="note">No PIN yet? Ask at the lab or WhatsApp 0701 321 020.</p></form>` : '<div class="panel"><p>The client portal is not connected yet.</p></div>'}
+      ${demo ? `<div class="panel"><h2>Demo: sign in as a client</h2><p class="note">Each client sees a page built for their kind of business.</p><div class="demo-list">${demo.map(c => `<div class="demo-c"><span><b>${esc(c.name)}</b><small>${esc(SEG[c.segment].title)} · ${esc(c.phone)} · PIN ${esc(c.pin)}</small></span><button class="btn small primary" type="button" data-demo-phone="${esc(c.phone)}" data-demo-pin="${esc(c.pin)}">Sign in</button></div>`).join('')}</div></div>` : ''}
+    </div></div>`;
+  }
+
+  // ---------- rendering ----------
+  function render() {
+    $('#outBtn').hidden = !state.token;
+    const app = $('#app');
+    if (!state.token) { app.innerHTML = viewLogin(); return; }
+    if (!state.data) { app.innerHTML = `<div class="wrap section"><p class="note">${state.loading ? 'Loading your results…' : ''}</p></div>`; return; }
+    const d = state.data;
+    const seg = d.client.segment;
+    app.innerHTML = seg === 'aggregator' ? viewAggregator(d) : seg === 'consumer' ? viewConsumer(d) : seg === 'trade' ? viewTrade(d) : viewFarmer(d);
+    document.title = (SEG[seg] || SEG.farmer).title + ' · AgriLab client portal';
+  }
+
+  document.addEventListener('click', async ev => {
+    const t = ev.target.closest('button'); if (!t) return;
+    if (t.id === 'outBtn') return signOut();
+    if (t.id === 'themeBtn') return toggleTheme();
+    if (t.dataset.demoPhone) { t.disabled = true; try { await signIn(t.dataset.demoPhone, t.dataset.demoPin); } catch (e) { toast(e.message); t.disabled = false; } return; }
+    const d = state.data; if (!d) return;
+    if (t.dataset.report) { const s = d.samples.find(x => x.id === t.dataset.report); if (s) saveFile(`AgriLab-${d.client.segment === 'trade' ? 'certificate' : 'report'}-${s.id}.html`, reportHtml(s, d), 'text/html'); return; }
+    if (t.dataset.act === 'csv') saveFile('agrilab-results.csv', csv(d), 'text/csv');
+    if (t.dataset.act === 'print') window.print();
+  });
+  document.addEventListener('submit', async ev => {
+    if (ev.target.id !== 'loginForm') return;
+    ev.preventDefault();
+    const phone = $('#l-phone').value.trim(), pin = $('#l-pin').value.trim(), err = $('#l-err'), go = $('#l-go');
+    err.textContent = '';
+    if (!phone || !pin) { err.textContent = 'Enter your phone number and PIN.'; return; }
+    go.disabled = true; go.textContent = 'Signing in…';
+    try { await signIn(phone, pin); } catch (e) { err.textContent = e.message; go.disabled = false; go.textContent = 'Sign in'; }
+  });
+
+  // Theme, shared with the rest of the site.
+  const MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  const SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
+  function paintTheme() { const b = $('#themeBtn'); b.innerHTML = isDark() ? SUN : MOON; b.setAttribute('aria-label', isDark() ? 'Switch to light theme' : 'Switch to dark theme'); }
+  function toggleTheme() { const n = isDark() ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', n); try { localStorage.setItem('agrilab-theme', n); } catch (e) {} paintTheme(); }
+  paintTheme();
+
+  try { state.token = localStorage.getItem(KEY); } catch (e) {}
+  render();
+  if (state.token) load();
+})();
+</script>
+</body>
+</html>

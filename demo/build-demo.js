@@ -34,9 +34,10 @@ function edit(rel, pairs) {
   }
   fs.writeFileSync(f, s);
 }
-edit('index.html', [['href="ops/"', 'href="ops/index.html"'], ['href="visit/"', 'href="visit/index.html"']]);
+edit('index.html', [['href="ops/"', 'href="ops/index.html"'], ['href="visit/"', 'href="visit/index.html"'], ['href="portal/"', 'href="portal/index.html"']]);
+edit('portal/index.html', [['href="../"', 'href="../index.html"']]);
 edit('visit/index.html', [['href="../"', 'href="../index.html"']]);
-edit('ops/index.html', [["new URL('../visit/', location.href)", "new URL('../visit/index.html', location.href)"]]);
+edit('ops/index.html', [["new URL('../visit/', location.href)", "new URL('../visit/index.html', location.href)"], ["new URL('../portal/', location.href)", "new URL('../portal/index.html', location.href)"]]);
 
 const backend = fs.readFileSync(path.join(__dirname, 'local-backend.js'), 'utf8');
 const code = fs.readFileSync(path.join(ROOT, 'apps-script', 'Code.gs'), 'utf8');
@@ -49,6 +50,7 @@ const cmd = (target) => `@echo off\r\nstart "" "%~dp0${target}"\r\n`;
 fs.writeFileSync(path.join(OUT, 'Open staff system.cmd'), cmd('ops\\index.html'));
 fs.writeFileSync(path.join(OUT, 'Open website.cmd'), cmd('index.html'));
 fs.writeFileSync(path.join(OUT, 'Open visitors book.cmd'), cmd('visit\\index.html'));
+fs.writeFileSync(path.join(OUT, 'Open client portal.cmd'), cmd('portal\\index.html'));
 fs.writeFileSync(path.join(OUT, 'README.txt'), [
   'AGRILAB OFFLINE DEMO',
   '====================',
@@ -59,6 +61,7 @@ fs.writeFileSync(path.join(OUT, 'README.txt'), [
   '  Open staff system.cmd    - the staff system, with one-click sign-in for each role',
   '  Open website.cmd         - the public website',
   '  Open visitors book.cmd   - the online visitors book',
+  '  Open client portal.cmd   - the client portal, with one-click sign-in for each kind of client',
   '',
   'Demo staff (name / PIN):',
   '  Lawrence Maina  Director        1111',
@@ -73,6 +76,13 @@ fs.writeFileSync(path.join(OUT, 'README.txt'), [
   '  3. Grace (lab manager) signs off the results.',
   '  4. Mary sends the report and marks the consultation done.',
   'Sign out (top right) to switch person. "Reset demo data" on the sign-in page restores the starting records.',
+  '',
+  'Demo clients for the client portal (phone / PIN):',
+  '  Kandara Dairy Farmer          farm page          0711 100 001  1234',
+  '  Githunguri Milk Co-operative  supplier page      0711 100 002  2345',
+  '  Kenol Primary School          food safety page   0711 100 003  3456',
+  '  Sunrise Peanut Butter Ltd     consignments page  0711 100 004  4567',
+  'Lawrence (Director) sets loyalty tiers on the Clients tab of the staff system; client pages update at once.',
   ''
 ].join('\r\n'));
 console.log('Demo built in ' + OUT);

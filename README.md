@@ -7,6 +7,7 @@ Test address: **https://agrilab.lynnandalfred.com**
 | `/` | The public website (`index.html`) |
 | `/ops/` | AgriLab Ops, the staff system: work plan, samples, test batches of up to 96, results, sign-off, visitors book, stock, QC, disposal and the daily close-out |
 | `/visit/` | The online visitors book, for visitors' phones or a tablet at reception |
+| `/portal/` | The client portal: each client's own results, trends and loyalty discount, with a page built for farmers, aggregators, consumers (schools, kitchens) or importers and exporters |
 | `apps-script/Code.gs` | The Google Apps Script that stores AgriLab Ops records in a Google Sheet |
 | `SETUP.md` | How to connect AgriLab Ops to its Google Sheet |
 

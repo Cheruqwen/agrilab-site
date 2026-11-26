@@ -13,11 +13,13 @@ var SHEETS = {
     'moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota', 'updatedAt', 'updatedBy',
     // Added later: kept at the end so existing sheets keep their columns in place.
     'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'batch', 'consult', 'consultFee', 'quoted',
-    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt'],
+    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt', 'clientId', 'element'],
   Stock: ['id', 'item', 'lot', 'testsLeft', 'reorderAt', 'expiry', 'addedAt', 'updatedAt', 'updatedBy'],
   QC: ['date', 'nir', 'elisa', 'fridgeMin', 'fridgeMax', 'notes', 'by', 'at'],
   Staff: ['id', 'name', 'role', 'pin', 'active'],
-  Visitors: ['id', 'at', 'name', 'phone', 'email', 'county', 'landmark', 'purpose', 'notes', 'source', 'by']
+  Visitors: ['id', 'at', 'name', 'phone', 'email', 'county', 'landmark', 'purpose', 'notes', 'source', 'by'],
+  Clients: ['id', 'name', 'phone', 'email', 'type', 'segment', 'county', 'landmark', 'pin', 'portal', 'since', 'createdAt', 'updatedAt', 'updatedBy'],
+  Settings: ['key', 'value', 'updatedAt', 'updatedBy']
 };
 var RESULT_FIELDS = ['moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota'];
 var TEST_CODES = ['NS-01', 'PR-01', 'OL-01', 'WC-01', 'SM-01', 'AF-01', 'AF-02', 'AM-01', 'FS-01', 'MY-01', 'MY-02', 'MY-03', 'MY-04', 'MP-01'];
@@ -37,23 +39,41 @@ var PERMS = {
   stock: ['director', 'lab_manager', 'analyst'],
   qc: ['director', 'lab_manager', 'analyst'],
   visitors: ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'],
-  bigDiscount: ['director']
+  bigDiscount: ['director'],
+  clients: ['director', 'lab_manager', 'client_desk'],
+  loyalty: ['director']
 };
 var PERM_TEXT = {
   logSample: 'log samples', payment: 'record payments', batch: 'start test batches', results: 'enter results',
   signOff: 'sign off or return results', sendReport: 'send reports', consult: 'mark consultations done', dispose: 'mark samples disposed',
-  stock: 'change kit stock', qc: 'log QC', visitors: 'sign in visitors', bigDiscount: 'approve discounts of 50% or more'
+  stock: 'change kit stock', qc: 'log QC', visitors: 'sign in visitors', bigDiscount: 'approve discounts of 50% or more', clients: 'manage client accounts', loyalty: 'change loyalty discounts'
 };
 function need_(me, perm) {
   if ((PERMS[perm] || []).indexOf(me.role) < 0) fail_('forbidden', 'Your role can’t ' + PERM_TEXT[perm] + '.');
 }
-var BOOL = ['express', 'paid', 'consent', 'active', 'grinding', 'consult'];
+var BOOL = ['express', 'paid', 'consent', 'active', 'grinding', 'consult', 'portal'];
 var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax', 'consultFee', 'quoted'].concat(RESULT_FIELDS);
 var TZ = 'Africa/Nairobi';
 var SESSION_SECONDS = 21600; // 6 hours, the longest the script cache keeps a value
 var MAX_TRIES = 5;
 var BATCH_MAX = 96;         // one microplate
 var KEEP_DAYS = 14;         // samples are disposed of no later than two weeks after they arrive
+// Client groups: each sees a portal page built for its work.
+var SEGMENTS = ['farmer', 'aggregator', 'consumer', 'trade'];
+var SEGMENT_OF_TYPE = {
+  'Dairy farmer': 'farmer', 'Poultry, pig or fish farmer': 'farmer',
+  'Milk co-operative': 'aggregator', 'Dairy co-operative': 'aggregator', 'Feed miller': 'aggregator', 'Feed distributor': 'aggregator',
+  'Agrovet': 'aggregator', 'Grain trader or posho mill': 'aggregator',
+  'Children’s home': 'consumer', 'School': 'consumer', 'Restaurant or caterer': 'consumer', 'Institution or researcher': 'consumer',
+  'Peanut butter manufacturer or importer': 'trade', 'Importer': 'trade', 'Exporter': 'trade'
+};
+// Loyalty tiers until the Director sets their own: spend over the period is the main measure; tests and months as a client are optional extras.
+var DEFAULT_TIERS = [
+  { name: 'Standard', minSpend: 0, minTests: 0, minMonths: 0, discount: 0 },
+  { name: 'Silver', minSpend: 20000, minTests: 0, minMonths: 0, discount: 5 },
+  { name: 'Gold', minSpend: 60000, minTests: 10, minMonths: 0, discount: 10 },
+  { name: 'Platinum', minSpend: 150000, minTests: 0, minMonths: 12, discount: 15 }
+];
 var VISITOR_PURPOSES = ['Bringing a sample', 'Collecting results', 'Nutritional consultation', 'Enquiry', 'Delivery', 'Partnership or business', 'Other'];
 
 // Fields the website may set when it logs a sample, and fields it may change later.
@@ -116,6 +136,12 @@ function route_(req) {
     case 'startBatch': return startBatch_(req);
     case 'markDisposed': return markDisposed_(req);
     case 'signVisitor': return signVisitor_(req);
+    case 'saveClient': return saveClient_(req);
+    case 'setClientPin': return setClientPin_(req);
+    case 'saveSettings': return saveSettings_(req);
+    case 'clientLogin': return clientLogin_(req);
+    case 'clientLogout': return clientLogout_(req);
+    case 'clientData': return clientData_(req);
     default: fail_('bad_request', 'Unknown action.');
   }
 }
@@ -197,8 +223,10 @@ function data_(req) {
   var visitors = [];
   try { visitors = readRows_('Visitors'); } catch (x) { /* tab not created yet: run setup() again */ }
   visitors.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
+  var clients = [];
+  try { clients = readRows_('Clients').map(publicClient_); } catch (x) { /* run setup() again */ }
   return { me: me, samples: samples.slice(0, 2000), stock: readRows_('Stock'), qc: qc.slice(0, 90), staff: staff,
-    visitors: visitors.slice(0, 500), serverTime: new Date().toISOString() };
+    visitors: visitors.slice(0, 500), clients: clients, settings: settings_(), serverTime: new Date().toISOString() };
 }
 
 /* ------------------------------------------------------------------ samples */
@@ -228,6 +256,8 @@ function createSample_(req) {
     row.receivedAt = now.toISOString();
     row.status = 'received';
     row.createdBy = me.id;
+    row.clientId = linkClient_(s, me, now);
+    row.element = clean_('element', s.element || '');
     row.disposeBy = new Date(now.getTime() + KEEP_DAYS * 864e5).toISOString();
     if (['dry', 'wet'].indexOf(row.sampleState) < 0) row.sampleState = '';
     if (row.paid) row.paidAt = row.receivedAt;
@@ -289,6 +319,161 @@ function updateSample_(req) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/* ------------------------------------------------------------------ clients and loyalty */
+
+/** Kenyan numbers in one form, so 0712…, +254712… and 254712… match. */
+function normPhone_(p) {
+  var d = String(p || '').replace(/\D/g, '');
+  if (d.length === 10 && d.charAt(0) === '0') return '254' + d.slice(1);
+  if (d.length === 9 && /^[17]/.test(d)) return '254' + d;
+  return d;
+}
+function segmentOf_(type) { return SEGMENT_OF_TYPE[type] || 'farmer'; }
+function publicClient_(c) {
+  return { id: c.id, name: c.name, phone: c.phone, email: c.email, type: c.type, segment: c.segment || segmentOf_(c.type),
+    county: c.county, landmark: c.landmark, portal: !!c.portal, since: c.since, createdAt: c.createdAt };
+}
+
+/** Finds the client for a new sample by phone (or by name when there is no phone), creating the account if it is new. */
+function linkClient_(s, me, now) {
+  var rows; try { rows = readRows_('Clients'); } catch (x) { return ''; }
+  var phone = normPhone_(s.clientPhone), name = String(s.clientName || '').trim().toLowerCase();
+  var found = null;
+  for (var i = 0; i < rows.length; i++) {
+    if ((phone && normPhone_(rows[i].phone) === phone) || (!phone && String(rows[i].name).trim().toLowerCase() === name)) { found = rows[i]; break; }
+  }
+  if (found) return found.id;
+  var used = {}; rows.forEach(function (r) { used[r.id] = true; });
+  var n = rows.length + 1; while (used['C' + n]) n++;
+  var c = { id: 'C' + n, name: String(s.clientName).trim().slice(0, 120), phone: String(s.clientPhone || '').slice(0, 40), email: '',
+    type: String(s.clientType || ''), segment: segmentOf_(s.clientType), county: String(s.county || ''), landmark: String(s.landmark || '').slice(0, 160),
+    pin: '', portal: false, since: now.toISOString(), createdAt: now.toISOString(), updatedAt: now.toISOString(), updatedBy: me.id };
+  sheet_('Clients').appendRow(toRow_('Clients', c));
+  return c.id;
+}
+
+function saveClient_(req) {
+  var me = session_(req); need_(me, 'clients');
+  var c = req.client || {};
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var idx = findIndex_('Clients', 'id', String(c.id || ''));
+    if (idx < 0) fail_('not_found', 'That client was not found.');
+    var cur = readRowAt_('Clients', idx);
+    ['name', 'phone', 'email', 'type', 'county', 'landmark'].forEach(function (f) { if (c[f] !== undefined) cur[f] = String(c[f]).slice(0, 160); });
+    if (c.segment !== undefined) { if (SEGMENTS.indexOf(c.segment) < 0) fail_('invalid', 'Unknown client group.'); cur.segment = c.segment; }
+    if (!String(cur.name).trim()) fail_('invalid', 'Enter the client’s name.');
+    cur.updatedAt = new Date().toISOString(); cur.updatedBy = me.id;
+    writeRowAt_('Clients', idx, cur);
+    return { client: publicClient_(cur) };
+  } finally { lock.releaseLock(); }
+}
+
+/** Gives a client a new 4-digit portal PIN. The PIN is returned once, for staff to pass on; the sheet keeps only a hash. */
+function setClientPin_(req) {
+  var me = session_(req); need_(me, 'clients');
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var idx = findIndex_('Clients', 'id', String(req.id || ''));
+    if (idx < 0) fail_('not_found', 'That client was not found.');
+    var cur = readRowAt_('Clients', idx);
+    if (!normPhone_(cur.phone)) fail_('invalid', 'Add the client’s phone number first: it is their portal sign-in.');
+    var pin = String(1000 + Math.floor(Math.random() * 9000));
+    cur.pin = hashPin_(pin, cur.id); cur.portal = true; cur.updatedAt = new Date().toISOString(); cur.updatedBy = me.id;
+    writeRowAt_('Clients', idx, cur);
+    return { client: publicClient_(cur), pin: pin };
+  } finally { lock.releaseLock(); }
+}
+
+function settings_() {
+  var o = {};
+  try { readRows_('Settings').forEach(function (r) { o[r.key] = r.value; }); } catch (x) {}
+  var tiers = null;
+  try { tiers = JSON.parse(o.tiers || 'null'); } catch (x) { tiers = null; }
+  if (!Array.isArray(tiers) || !tiers.length) tiers = DEFAULT_TIERS;
+  return { tiers: tiers, period: o.period === 'all' ? 'all' : '12m', retestDays: Number(o.retestDays) || 30 };
+}
+
+function saveSettings_(req) {
+  var me = session_(req); need_(me, 'loyalty');
+  var t = req.settings || {};
+  var tiers = Array.isArray(t.tiers) ? t.tiers : [];
+  if (!tiers.length || tiers.length > 8) fail_('invalid', 'Set between one and eight tiers.');
+  tiers = tiers.map(function (x) {
+    var name = String(x.name || '').trim().slice(0, 30);
+    var d = Number(x.discount), sp = Number(x.minSpend), te = Number(x.minTests || 0), mo = Number(x.minMonths || 0);
+    if (!name) fail_('invalid', 'Every tier needs a name.');
+    if (!(d >= 0 && d <= 50)) fail_('invalid', 'Tier discounts must be between 0% and 50%.');
+    if (!(sp >= 0) || !(te >= 0) || !(mo >= 0)) fail_('invalid', 'Spend, tests and months can’t be negative.');
+    return { name: name, minSpend: Math.round(sp), minTests: Math.round(te), minMonths: Math.round(mo), discount: Math.round(d * 10) / 10 };
+  }).sort(function (a, b) { return a.minSpend - b.minSpend; });
+  var period = t.period === 'all' ? 'all' : '12m';
+  var retest = Math.min(365, Math.max(7, Math.round(Number(t.retestDays) || 30)));
+  var now = new Date().toISOString();
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    [['tiers', JSON.stringify(tiers)], ['period', period], ['retestDays', String(retest)]].forEach(function (kv) {
+      var row = { key: kv[0], value: kv[1], updatedAt: now, updatedBy: me.id };
+      var idx = findIndex_('Settings', 'key', kv[0]);
+      if (idx < 0) sheet_('Settings').appendRow(toRow_('Settings', row)); else writeRowAt_('Settings', idx, row);
+    });
+  } finally { lock.releaseLock(); }
+  return { settings: settings_() };
+}
+
+/** Spend (paid samples), number of paid samples and months as a client, and the tier they earn. */
+function loyalty_(client, samples, st) {
+  var now = Date.now(), from = st.period === 'all' ? 0 : now - 365 * 864e5;
+  var paid = samples.filter(function (x) { return x.paid && new Date(x.receivedAt).getTime() >= from; });
+  var spend = paid.reduce(function (a, x) { return a + (Number(x.price) || 0); }, 0);
+  var first = samples.reduce(function (m, x) { return x.receivedAt && x.receivedAt < m ? x.receivedAt : m; }, client.since || new Date().toISOString());
+  var months = Math.max(0, Math.floor((now - new Date(first).getTime()) / (30.44 * 864e5)));
+  var tiers = st.tiers.slice().sort(function (a, b) { return a.minSpend - b.minSpend; });
+  var ok = function (t) { return spend >= t.minSpend && paid.length >= (t.minTests || 0) && months >= (t.minMonths || 0); };
+  var tier = null; tiers.forEach(function (t) { if (ok(t)) tier = t; });
+  var next = null; tiers.forEach(function (t) { if (!next && !ok(t) && (!tier || t.minSpend > tier.minSpend)) next = t; });
+  return { spend: spend, tests: paid.length, months: months, since: first, period: st.period, tier: tier, next: next };
+}
+
+/* ------------------------------------------------------------------ client portal */
+
+function clientLogin_(req) {
+  var phone = normPhone_(req.phone), pin = String(req.pin || '').trim();
+  if (!phone || !pin) fail_('bad_login', 'Enter your phone number and PIN.');
+  var cache = CacheService.getScriptCache(), failKey = 'cfail:' + phone;
+  var fails = Number(cache.get(failKey) || 0);
+  if (fails >= MAX_TRIES) fail_('locked', 'Too many wrong PINs. Wait 15 minutes, or call the lab for a new PIN.');
+  var rows; try { rows = readRows_('Clients'); } catch (x) { rows = []; }
+  var c = null;
+  for (var i = 0; i < rows.length; i++) if (normPhone_(rows[i].phone) === phone && rows[i].portal) { c = rows[i]; break; }
+  if (!c || String(c.pin) !== hashPin_(pin, c.id)) { cache.put(failKey, String(fails + 1), 900); fail_('bad_login', 'Phone number or PIN not recognised.'); }
+  cache.remove(failKey);
+  var token = Utilities.getUuid();
+  cache.put('cs:' + token, JSON.stringify({ clientId: c.id }), SESSION_SECONDS);
+  return { token: token, client: { name: c.name } };
+}
+function clientLogout_(req) { CacheService.getScriptCache().remove('cs:' + String(req.token || '')); return {}; }
+
+/** Everything a signed-in client may see: their own samples (results only once reported), their loyalty standing and the tiers. */
+function clientData_(req) {
+  var v = CacheService.getScriptCache().get('cs:' + String(req.token || ''));
+  if (!v) fail_('unauthorized', 'Please sign in again.');
+  var id = JSON.parse(v).clientId;
+  var c = null; readRows_('Clients').forEach(function (r) { if (r.id === id) c = r; });
+  if (!c || !c.portal) fail_('unauthorized', 'Your portal access has been switched off. Please call the lab.');
+  var mine = readRows_('Samples').filter(function (x) { return x.clientId === id; });
+  mine.sort(function (a, b) { return String(b.receivedAt).localeCompare(String(a.receivedAt)); });
+  var st = settings_();
+  var out = mine.map(function (x) {
+    var o = { id: x.id, receivedAt: x.receivedAt, status: x.status, sampleType: x.sampleType, description: x.description, element: x.element,
+      tests: x.tests, price: x.price, paid: x.paid, paidAt: x.paidAt, startedAt: x.startedAt, dueAt: x.dueAt, reportedAt: x.reportedAt,
+      consult: x.consult, consultDoneAt: x.consultDoneAt, county: x.county, batch: x.batch };
+    if (x.status === 'reported') RESULT_FIELDS.forEach(function (f) { o[f] = x[f]; });
+    return o;
+  });
+  return { client: publicClient_(c), samples: out, loyalty: loyalty_(c, mine, st), tiers: st.tiers, retestDays: st.retestDays };
 }
 
 /* ------------------------------------------------------------------ batches and disposal */
