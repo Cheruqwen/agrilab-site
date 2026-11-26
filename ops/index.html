@@ -313,6 +313,36 @@ th { color: var(--muted); }
 .use-cell .ico { width: 26px; height: 26px; }
 .use-cell b { font-family: var(--font-display); font-size: 20px; color: var(--ink); }
 .use-cell span { font-size: 12px; color: var(--text); }
+.tabs-inner#subRow { gap: 6px; padding-block: 8px; }
+.tab { border: 1px solid transparent; border-radius: 999px; padding: 7px 15px; font-size: 14px; color: var(--muted); }
+.tab:hover { color: var(--ink); background: var(--surface-2); }
+.tab[aria-selected="true"] { color: var(--ink); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); border-bottom-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.alert { border: 1px solid var(--line); transition: border-color .15s, background .15s; }
+.alert:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface-2)); }
+.panel { border-color: var(--line); }
+.panel-head h2 { font-size: 19px; }
+.kpi .value { letter-spacing: -0.01em; }
+.job:hover { background: color-mix(in srgb, var(--accent) 6%, var(--surface-2)); }
+.guide-hero { background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface) 60%); }
+.lead-line { font-size: 16px; color: var(--text); max-width: 80ch; }
+.journey { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; position: relative; }
+.journey li { display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 12px 0; position: relative; }
+.journey li:not(:last-child)::before { content: ""; position: absolute; left: 23px; top: 58px; bottom: -6px; width: 2px; background: var(--line); }
+.journey b { color: var(--ink); font-size: 15.5px; } .journey b .num { color: var(--accent); margin-right: 4px; }
+.journey p { margin: 3px 0 4px; }
+.jicon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); flex: none; }
+.jicon .ico { width: 26px; height: 26px; }
+.flow { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); counter-reset: fstep; }
+.fstep { counter-increment: fstep; position: relative; min-width: 0; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 6px; align-content: start; background: var(--surface-2); opacity: 0.8; }
+.fstep .jicon { width: 38px; height: 38px; border-radius: 11px; background: var(--surface); color: var(--muted); border-color: var(--line); }
+.fstep .jicon .ico { width: 22px; height: 22px; }
+.fstep b { color: var(--ink); font-size: 14px; } .fstep p { font-size: 12.5px; color: var(--text); }
+.fstep .who { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.fstep.mine { opacity: 1; border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.fstep.mine .jicon { color: var(--accent); border-color: var(--accent); }
+.farrow { display: none; }
+.fstep::after { content: counter(fstep); position: absolute; top: 10px; right: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
 .team-head { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 </style>
 </head>
@@ -330,6 +360,7 @@ th { color: var(--muted); }
     <button class="btn small" id="refreshBtn" type="button" hidden>Refresh</button>
     <button class="btn small" id="demoBtn" type="button">Show example data</button>
     <button class="btn small" id="signOutBtn" type="button" hidden>Sign out</button>
+    <button class="btn small" id="guideBtn" type="button">How it works</button>
     <button class="btn small theme-btn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Light or dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   </div>
 </header>
@@ -487,7 +518,7 @@ th { color: var(--muted); }
     names: {}, lastCreated: null, dirty: {}
   };
   const data = () => (state.demo ? state.demoData : state.live);
-  const DIRTY_SKIP = new Set(['search', 'co-day', 'batchSel', 'v-search', 'c-search', 'f-from', 'f-to', 'f-client', 'f-test', 'm-period']);
+  const DIRTY_SKIP = new Set(['g-role', 'search', 'co-day', 'batchSel', 'v-search', 'c-search', 'f-from', 'f-to', 'f-client', 'f-test', 'm-period']);
   function trackDirty(el) {
     if (el && el.type === 'radio' && el.name && !el._grp) { document.querySelectorAll(`input[name="${el.name}"]`).forEach(r => { r._grp = true; trackDirty(r); r._grp = false; }); return; } if (!el || !el.id || DIRTY_SKIP.has(el.id) || el.id.startsWith('tier-')) return; state.dirty[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? { c: el.checked } : { v: el.value }; }
   function restoreDirty() { for (const id in state.dirty) { const el = document.getElementById(id); if (!el || el.disabled) continue; const d = state.dirty[id]; if ('c' in d) el.checked = d.c; else el.value = d.v; } }
@@ -735,16 +766,33 @@ th { color: var(--muted); }
   const ROLE_HOME = { director: ['overview', 'dashboard'], lab_manager: ['lab', 'plan'], lab_technician: ['reception', 'reception'], analyst: ['lab', 'plan'],
     client_desk: ['reception', 'reception'], nutritionist: ['sales', 'consults'], sales_marketing: ['sales', 'marketing'], field_officer: ['reception', 'new'] };
   function setView(v, dept) {
+    if (!canSee(v)) { const h = (state.me && ROLE_HOME[state.me.role]) || ['overview', 'dashboard']; v = h[1]; dept = h[0]; }
     const d = dept || (DEPTS.find(x => x[0] === state.dept && x[2].some(y => y[0] === v)) || DEPTS.find(x => x[2].some(y => y[0] === v)) || DEPTS[0])[0];
     state.view = v; state.dept = d; state.dirty = {};
     try { history.replaceState(null, '', '#' + v); } catch (e) {}
     render();
   }
+  const VIEW_ROLES = {
+    dashboard: ['director', 'lab_manager', 'lab_technician'],
+    closeout: PERMS.closeout,
+    reception: ['director', 'lab_manager', 'lab_technician', 'client_desk'],
+    new: PERMS.logSample,
+    plan: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+    stock: ['director', 'lab_manager', 'lab_technician', 'analyst'],
+    marketing: PERMS.marketing,
+    clients: ['director', 'lab_manager', 'lab_technician', 'client_desk', 'sales_marketing', 'nutritionist'],
+    subscriptions: ['director', 'lab_manager', 'lab_technician', 'client_desk', 'sales_marketing'],
+    consults: ['director', 'lab_manager', 'lab_technician', 'nutritionist', 'sales_marketing']
+  };
+  const canSee = v => v === 'guide' || state.demo || !state.me || !VIEW_ROLES[v] || VIEW_ROLES[v].includes(state.me.role);
   function goHome() { const h = (state.me && ROLE_HOME[state.me.role]) || ['overview', 'dashboard']; setView(h[1], h[0]); }
   function renderNav() {
-    const dept = DEPTS.find(x => x[0] === state.dept) || DEPTS[0];
-    $('#deptRow').innerHTML = DEPTS.map(([k, l]) => `<button class="dept" type="button" data-dept="${k}" aria-current="${k === dept[0]}">${icon(k)}${esc(l)}</button>`).join('');
-    $('#subRow').innerHTML = dept[2].map(([v, l]) => `<button class="tab" role="tab" data-view="${v}" type="button" aria-selected="${v === state.view}">${esc(l)}</button>`).join('');
+    // Hide a department whose visible views all appear in an earlier one (e.g. Lab with only Samples for a rider).
+    const depts = DEPTS.map(d => [d[0], d[1], d[2].filter(x => canSee(x[0]))]).filter(d => d[2].length)
+      .filter((d, i, all) => !all.slice(0, i).some(e => d[2].every(x => e[2].some(y => y[0] === x[0]))));
+    const dept = depts.find(x => x[0] === state.dept) || depts[0];
+    $('#deptRow').innerHTML = depts.map(([k, l]) => `<button class="dept" type="button" data-dept="${k}" aria-current="${state.view !== 'guide' && k === dept[0]}">${icon(k)}${esc(l)}</button>`).join('');
+    $('#subRow').innerHTML = state.view === 'guide' ? '<span class="tab" aria-selected="true">How it works</span>' : dept[2].map(([v, l]) => `<button class="tab" role="tab" data-view="${v}" type="button" aria-selected="${v === state.view}">${esc(l)}</button>`).join('');
   }
   function renderChrome() {
     const conn = $('#conn');
@@ -787,7 +835,7 @@ th { color: var(--muted); }
     const users = window.AGRILAB_DEMO.users;
     const perms = Object.keys(PERMS);
     return `<section class="panel" style="max-width:860px;margin:0 auto;width:100%">
-      <div class="panel-head"><h2>Demo: sign in as each role</h2><button class="btn small" type="button" data-action="demo-reset">Reset demo data</button></div>
+      <div class="panel-head"><h2>Demo: sign in as each role</h2><div class="row"><button class="btn small" type="button" data-action="guide-open">How it works</button><button class="btn small" type="button" data-action="demo-reset">Reset demo data</button></div></div>
       <p class="note">Runs on this computer only. Records stay in this browser until you reset them.</p>
       ${[['now', 'The team today'], ['later', 'Future hires']].map(([k, title]) => `<p class="team-head">${title}</p><div class="demo-users">${users.filter(u => (u.team || 'now') === k).map(u => `<div class="demo-user">${roleCard(u.role, false).replace('<b>' + esc(ROLE_LABEL[u.role]) + '</b>', '<b>' + esc(u.name) + ' · ' + esc(ROLE_LABEL[u.role]) + ' <span class="chip">PIN ' + esc(u.pin) + '</span></b>')}<button class="btn primary small" type="button" data-action="demo-login" data-name="${esc(u.name)}" data-pin="${esc(u.pin)}">Sign in</button></div>`).join('')}</div>`).join('')}
       <h3>Who can do what</h3>
@@ -798,6 +846,8 @@ th { color: var(--muted); }
   function render() {
     renderChrome();
     const v = $('#view');
+    if (state.view === 'guide') { v.innerHTML = viewGuide(); renderDrawer(); return; }
+    if (state.me && !state.demo && !canSee(state.view)) { const h = ROLE_HOME[state.me.role] || ['overview', 'dashboard']; state.view = h[1]; state.dept = h[0]; renderNav(); }
     if (needsLogin()) { v.innerHTML = viewLogin(); renderDrawer(); restoreDirty(); return; }
     if (state.view === 'dashboard') v.innerHTML = viewDashboard();
     else if (state.view === 'samples') v.innerHTML = viewSamples();
@@ -973,11 +1023,18 @@ th { color: var(--muted); }
   }
 
   // New sample form
+  function pickupsPanel() {
+    if (!state.me || state.me.role !== 'field_officer') return '';
+    const mine = data().samples.filter(s => s.createdBy === state.me.id && (now() - new Date(s.receivedAt)) < 14 * 864e5);
+    return `<section class="panel"><div class="panel-head"><h2>Your pickups</h2><span class="hint">last two weeks</span></div>
+      ${mine.length ? `<div class="alerts">${mine.map(s => `<button class="alert" type="button" data-open="${esc(s.id)}"><span class="chip ${s.paid ? (s.status === 'reported' ? 'good' : 'info') : 'warn'}">${s.paid ? esc(STATUS_LABEL[s.status]) : 'Unpaid'}</span><span class="what"><b>${esc(s.client.name)}</b> ${useBadge(s)}<span>${esc(s.landmark || s.county || '')} · ${esc(fmtDT(s.receivedAt))}</span></span><span class="note">Open</span></button>`).join('')}</div>` : '<p class="note">No pickups logged yet.</p>'}
+    </section>`;
+  }
   function viewNew() {
     const ro = state.readOnly || state.canWrite === false;
     const opt = arr => arr.map(x => `<option>${esc(x)}</option>`).join('');
     const created = state.lastCreated ? `<section class="panel" style="border-color:var(--accent)"><div class="panel-head"><h2>Logged ${esc(state.lastCreated.id)}</h2><button class="btn small" type="button" data-open="${esc(state.lastCreated.id)}">Open sample</button></div><pre class="msg" id="receiptMsg">${esc(receiptMsg(state.lastCreated))}</pre><div class="row"><button class="btn primary small" type="button" data-action="copy-receipt">Copy WhatsApp receipt</button><span class="note">Write ${esc(state.lastCreated.id)} on the brown khaki bag (or bottle) before it goes to the shelf.</span></div></section>` : '';
-    return `${created}
+    return `${created}${pickupsPanel()}
     <form class="panel" id="newForm" novalidate>
       <div class="panel-head"><h2>Log a new sample</h2><span class="hint">Every sample is logged here before it is tested.</span></div>
       <div class="fgrid">
@@ -1394,6 +1451,9 @@ th { color: var(--muted); }
           <button class="btn primary" type="button" data-action="start-batch" ${ro || !can('batch') || !picked.length || picked.length > BATCH_MAX ? 'disabled' : ''}>Start testing</button>
           ${picked.length > BATCH_MAX ? `<span class="chip bad">A batch holds at most ${BATCH_MAX}</span>` : ''}</div>
       </section>
+      <section class="panel"><div class="panel-head"><h2>Awaiting sign-off</h2><span class="hint">${can('signOff') ? 'second check before results leave the lab' : 'signed off by ' + esc(whoCan('signOff'))}</span></div>
+        ${(() => { const rv = samples.filter(s => s.status === 'review'); return rv.length ? `<div class="alerts">${rv.map(s => `<button class="alert" type="button" data-open="${esc(s.id)}"><span class="chip info">Sign-off</span>${line(s, 'entered by ' + esc(nameOf(s.analystId)))}<span class="note">Open</span></button>`).join('')}</div>` : '<p class="note">Nothing waiting for sign-off.</p>'; })()}
+      </section>
       <div class="grid2">
         <section class="panel"><div class="panel-head"><h2>Open batches</h2><span class="hint">tap one to see its samples</span></div>
           ${open.length ? open.map(([b, n]) => { const l = samples.filter(s => s.batch === b); const done = l.filter(s => STATUS_INDEX[s.status] >= 2).length; return `<button class="alert" type="button" data-batch-go="${esc(b)}" style="grid-template-columns:1fr auto"><span class="what"><b class="mono">${esc(b)}</b> · ${n}/${BATCH_MAX} samples<span>${done} of ${n} with results · ${esc([...new Set(l.flatMap(methodsOf))].join(', '))}</span><span class="meter" style="margin-top:6px"><span style="width:${(n / BATCH_MAX * 100).toFixed(1)}%"></span></span></span><span class="note">Show</span></button>`; }).join('') : '<p class="note">No batch is in analysis right now.</p>'}
@@ -1527,6 +1587,120 @@ th { color: var(--muted); }
     : s.purpose === 'feed' ? `<span class="use-badge use-feed" title="Feed for ${esc(s.animal || 'animals')}">${icon(s.animal || 'feed')}${esc((s.animal || 'Feed').replace(' and sheep', '/sheep').replace(' animals', ''))}</span>` : '';
   const useText = s => s.purpose === 'food' ? 'Human food' : s.purpose === 'feed' ? 'Animal feed for ' + (s.animal || 'animals').toLowerCase() : '';
   const seesRevenue = () => can('marketing');
+
+  // ---------- How it works: a guide for each role, with a worked example and the data flow ----------
+  Object.assign(ICON_PATHS, {
+    person: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+    coin: '<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.4 0-2.5.8-2.5 2s1 1.6 2.5 2 2.5.8 2.5 2-1.1 2-2.5 2c-1 0-2-.5-2.5-1.5M12 6.5v1.5M12 16v1.5"/>',
+    plate: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="7.5" cy="10" r="1"/><circle cx="12" cy="10" r="1"/><circle cx="16.5" cy="10" r="1"/><circle cx="7.5" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="16.5" cy="14" r="1"/>',
+    shield: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+    report: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h4"/>',
+    phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+    bin: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    bike: '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-7h5l3 7M13 10l-1-4h-2"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/>',
+    chart: '<path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/>',
+    star: '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'
+  });
+  // The life of a sample, and which roles touch each stage.
+  const FLOW = [
+    ['person', 'Visit or pickup', 'Visitor signs in, or the rider collects from the farm. County and nearest landmark recorded.', ['client_desk', 'lab_technician', 'field_officer']],
+    ['feed', 'Sample logged', 'Client account found or created by phone. Feed or food, animal, tests, price. Code R (received) starts.', ['client_desk', 'lab_technician', 'field_officer']],
+    ['coin', 'Paid in full', 'M-Pesa recorded, or covered by a monthly plan. Code P (paid). Nothing is tested before this.', ['client_desk', 'lab_technician']],
+    ['plate', 'Batch and test', 'Paid samples go into a batch of up to 96. Code T (tested). Ground, dried and run.', ['analyst', 'lab_technician']],
+    ['shield', 'Sign-off', 'A second person, the lab manager or Director, checks and signs. Never their own results.', ['lab_manager', 'director']],
+    ['report', 'Report sent', 'WhatsApp message and report to the client. Consultation booked if they asked.', ['client_desk', 'lab_technician']],
+    ['phone', 'Client portal', 'Results, trends, loyalty tier and plan usage appear on the client’s page.', ['sales_marketing', 'nutritionist']],
+    ['chart', 'Marketing', 'Revenue, channels, counties and prospects. Director and Sales & marketing only.', ['sales_marketing', 'director']],
+    ['bin', 'Disposal', 'Every sample is thrown away within two weeks of arriving, and marked disposed.', ['analyst', 'lab_technician', 'lab_manager']]
+  ];
+  // A worked day for each role: [icon, step, what happens, the view it happens in].
+  const JOURNEYS = {
+    director: { who: 'Lawrence', story: 'starts the day on the Overview and keeps the business on track.', steps: [
+      ['overview', 'Check what needs attention', 'Overview › Dashboard lists overdue samples, results above the limit, unpaid samples, low kit stock and a missing QC log.', 'dashboard'],
+      ['star', 'Approve the big decisions', 'Fidelia asks for a free trial for a new co-op. Only the Director can choose 50% or Free trial when logging.', 'new'],
+      ['shield', 'Sign off when Mwangi is out', 'Open a sample awaiting sign-off and sign it, as long as you didn’t enter the results.', 'samples'],
+      ['chart', 'Review the numbers with Alfred', 'Marketing shows revenue against the last period, monthly plan income, and where clients come from.', 'marketing'],
+      ['coin', 'Set loyalty tiers', 'Clients › Loyalty discounts: change the spend, tests and months for each tier. Clients’ pages update at once.', 'clients']
+    ] },
+    lab_manager: { who: 'Mwangi', story: 'guides the lab and makes sure every result is right before it leaves.', steps: [
+      ['lab', 'Plan the day', 'Lab › Work plan: the routine, samples to prepare, open batches and what is awaiting your sign-off.', 'plan'],
+      ['shield', 'Second sign-off', 'Fidelia sent AGL-…-004 for review. Check the values against the limits and sign off, or return it with a note.', 'plan'],
+      ['plate', 'Keep batches moving', 'Open batches show how many of 96 places are used and how many have results.', 'plan'],
+      ['report', 'QC and kits', 'Stock & QC: log the fridge, NIR check sample and plate control each morning; reorder kits before they run out.', 'stock'],
+      ['bin', 'Close the loop', 'Make sure samples at two weeks are disposed of and the close-out is sent.', 'closeout']
+    ] },
+    lab_technician: { who: 'Fidelia', story: 'runs reception and the bench until the team grows.', steps: [
+      ['person', '8:30 · Sign in the visitor', 'Kandara Dairy Farmer arrives with a bag of dairy meal. Visitors › Sign in a visitor (or he signs in on the online book).', 'visitors'],
+      ['feed', 'Log the sample', 'New sample: phone 0711 100 001 finds his account and Gold tier. Tap Animal feed › Dairy cattle, tick FeedSafe Combo. The 10% loyalty discount applies itself.', 'new'],
+      ['coin', 'Take payment in full', 'He pays by M-Pesa; enter the code and tick Paid in full. Copy the WhatsApp receipt. Write the ID on the khaki bag.', 'new'],
+      ['plate', '10:00 · Build the batch', 'Lab › Work plan: tick the paid samples (up to 96) and Start testing. Grind the feed first.', 'plan'],
+      ['lab', 'Enter results', 'Open the sample, type each value, Send for review. Mwangi signs it off.', 'samples'],
+      ['report', '16:00 · Send the report', 'Reception › Front desk › Reports to send: copy the WhatsApp message, then Mark report as sent. It appears on his portal.', 'reception'],
+      ['bin', '16:30 · Dispose and close', 'Work plan › Dispose of samples, then Overview › Close-out.', 'closeout']
+    ] },
+    analyst: { who: 'Peter (future hire)', story: 'takes over the bench when the lab gets busy.', steps: [
+      ['lab', 'Start on the Work plan', 'See what to grind or dry, and which paid samples are ready to batch.', 'plan'],
+      ['plate', 'Build a batch', 'Tick up to 96 paid samples by method (NIR, ELISA, wet chemistry) and Start testing.', 'plan'],
+      ['report', 'Enter results', 'Open each sample in the batch, enter values, Send for review.', 'samples'],
+      ['shield', 'Daily QC and stock', 'Log QC each morning; update kit tests left after each plate.', 'stock'],
+      ['bin', 'Dispose', 'Mark bags disposed once they have actually been thrown away.', 'plan']
+    ] },
+    client_desk: { who: 'Mary (future hire)', story: 'takes over the front desk from Fidelia.', steps: [
+      ['person', 'Welcome visitors', 'Sign them in at reception, or check who signed in online.', 'visitors'],
+      ['feed', 'Log samples', 'Feed or food, animal, tests. Existing clients get their loyalty or plan cover automatically.', 'new'],
+      ['coin', 'Collect payment and plan fees', 'Front desk lists samples waiting for payment and plan fees due this month.', 'reception'],
+      ['report', 'Send reports', 'Reports to send: copy the WhatsApp message, mark sent.', 'reception'],
+      ['star', 'Close the day', 'Close-out: check each M-Pesa code against the till statement.', 'closeout']
+    ] },
+    nutritionist: { who: 'Grace', story: 'turns numbers into advice the client can act on.', steps: [
+      ['chat', 'See who to call', 'Consultations › To call now lists clients whose results are signed off and who booked a consultation.', 'consults'],
+      ['feed', 'Read the results', 'Open the sample: protein, fat, moisture and aflatoxin, the animal it is for, and earlier results from the same feed.', 'consults'],
+      ['person', 'Call the client', 'Explain what to change, for example a feed low in protein for milking cows, or too much fat causing loose stool.', 'consults'],
+      ['shield', 'Mark it done', 'Consultation done. It moves to Done in the last 30 days.', 'consults'],
+      ['phone', 'Point them to the portal', 'Their trends and targets are on their portal page; ask the desk for a PIN if they have none.', 'clients']
+    ] },
+    sales_marketing: { who: 'Alfred', story: 'grows the business from what the lab already records.', steps: [
+      ['chart', 'Read the week', 'Marketing: revenue, new and returning clients, channels (from “How did they hear about us?”), counties and tests sold.', 'marketing'],
+      ['person', 'Call the win-back list', 'Clients with no sample for 60 days, biggest spenders first, with phone numbers.', 'marketing'],
+      ['star', 'Sell a plan', 'Subscription prospects test often. Subscriptions › New subscription: Starter, Standard or Premium.', 'subscriptions'],
+      ['phone', 'Give portal access', 'Clients › open the client › Give portal access, then send the PIN by WhatsApp.', 'clients'],
+      ['coin', 'Watch monthly income', 'Monthly recurring and plan usage. Reception records each month’s fee.', 'subscriptions']
+    ] },
+    field_officer: { who: 'Brian', story: 'brings samples in from farms around Kenol.', steps: [
+      ['bike', 'Collect at the farm', 'Take a mixed sample, pack it in a khaki bag (silage sealed in plastic), note the nearest landmark.', 'new'],
+      ['feed', 'Log it on the phone', 'New sample: client, phone, county, landmark, feed or food and the animal, tests. Received via: Pickup.', 'new'],
+      ['coin', 'Payment at reception', 'Riders don’t take payment. The sample waits at reception until it is paid in full.', 'new'],
+      ['person', 'Hand over the bag', 'Give the bag to reception with the ID written on it. Your pickups list shows where each one is.', 'new']
+    ] }
+  };
+  function viewGuide() {
+    const role = state.guideRole || (state.me && state.me.role) || 'lab_technician';
+    const j = JOURNEYS[role]; const signedIn = !!state.token || state.demo;
+    const mine = FLOW.map(f => f[3].includes(role));
+    const viewName = v => { for (const d of DEPTS) { const x = d[2].find(y => y[0] === v); if (x) return d[1] + ' › ' + x[1]; } return ''; };
+    return `<section class="panel guide-hero"><div class="panel-head"><div><p class="dept-note">How it works</p><h2>${esc(j.who)}, ${esc(ROLE_LABEL[role])}</h2></div>
+        <div class="row"><label class="note" for="g-role">Show the guide for</label><select id="g-role" style="width:auto">${ALL_ROLES.map(r => `<option value="${r}" ${r === role ? 'selected' : ''}>${esc(ROLE_LABEL[r])}</option>`).join('')}</select>${!signedIn ? '<button class="btn small" type="button" data-action="guide-close">Back to sign-in</button>' : ''}</div></div>
+        <p class="lead-line">${esc(j.who)} ${esc(j.story)}</p></section>
+      <section class="panel"><div class="panel-head"><h2>A day, step by step</h2><span class="hint">an example with the demo clients</span></div>
+        <ol class="journey">${j.steps.map(([ic, t, d, v], i) => `<li><span class="jicon">${icon(ic)}</span><div><b><span class="num">${i + 1}</span> ${esc(t)}</b><p>${esc(d)}</p>${v && signedIn && canSee(v) ? `<button class="linkbtn" type="button" data-goto="${v}">Open ${esc(viewName(v))}</button>` : `<span class="note">${esc(viewName(v))}</span>`}</div></li>`).join('')}</ol></section>
+      <section class="panel"><div class="panel-head"><h2>How a sample and its data flow</h2><span class="hint">highlighted: where ${esc(j.who)} works</span></div>
+        <div class="flow">${FLOW.map(([ic, t, d, roles], i) => `<div class="fstep ${mine[i] ? 'mine' : ''}"><span class="jicon">${icon(ic)}</span><b>${esc(t)}</b><p>${esc(d)}</p><span class="who">${roles.map(r => esc(ROLE_LABEL[r])).join(' · ')}</span></div>`).join('<span class="farrow" aria-hidden="true">→</span>')}</div>
+        <div class="grid2" style="margin-top:4px">
+          <div class="box"><h3>What the data is used for</h3><ul class="plain">
+            <li><b>Phone number</b> links every sample to one client account: their portal, loyalty tier and plan.</li>
+            <li><b>Feed or food, animal and farm element</b> group results on the client’s page and set the nutrition targets.</li>
+            <li><b>How they heard about us, county and client type</b> feed the Marketing dashboard. Record them carefully.</li>
+            <li><b>Paid spend and plan fees</b> decide the loyalty tier. Only the Director and Sales & marketing see the amounts.</li></ul></div>
+          <div class="box"><h3>Rules the system keeps for you</h3><ul class="plain">
+            <li>No testing until a sample is paid in full or covered by a paid-up plan.</li>
+            <li>A batch holds at most 96 samples.</li>
+            <li>Results need a second person to sign off; nobody signs their own.</li>
+            <li>Results are locked once they leave analysis; clients only see reported results.</li>
+            <li>Samples are disposed of within two weeks.</li></ul></div>
+        </div></section>
+      <section class="panel"><div class="panel-head"><h2>What ${esc(j.who)} can do</h2></div>${roleCard(role, true)}</section>`;
+  }
 
   // ---------- subscriptions ----------
   // Starting plans for the sales team to offer; any plan can be changed per client.
@@ -1772,9 +1946,10 @@ th { color: var(--muted); }
     const t = ev.target.closest('button, .drawer-back, [data-open]');
     if (!t) return;
     if (t.classList.contains('tab')) { setView(t.dataset.view, state.dept); return; }
-    if (t.classList.contains('dept')) { const d = DEPTS.find(x => x[0] === t.dataset.dept); setView(d[2][0][0], d[0]); return; }
+    if (t.classList.contains('dept')) { const d = DEPTS.find(x => x[0] === t.dataset.dept); const first = d[2].find(x => canSee(x[0])); setView(first ? first[0] : 'dashboard', d[0]); return; }
     if (t.id === 'demoBtn') { toggleDemo(!state.demo); return; }
     if (t.id === 'themeBtn') { toggleTheme(); return; }
+    if (t.id === 'guideBtn') { state.guideRole = null; setView('guide'); window.scrollTo({ top: 0 }); return; }
     if (t.id === 'refreshBtn') { loadData(); return; }
     if (t.id === 'signOutBtn') { signOut(false); return; }
     if (t.dataset.goto) { setView(t.dataset.goto); return; }
@@ -1808,6 +1983,8 @@ th { color: var(--muted); }
       catch (e) { toast(e.message); t.disabled = false; }
     }
     else if (a === 'demo-reset') { if (confirm('Reset the demo? This deletes every sample, visitor and change made in this demo and restores the starting records.')) { window.AGRILAB_DEMO.reset(); signOut(true); toast('Demo data reset'); } }
+    else if (a === 'guide-open') { state.guideRole = null; state.view = 'guide'; render(); window.scrollTo({ top: 0 }); }
+    else if (a === 'guide-close') { state.view = 'dashboard'; render(); }
     else if (a === 'f-today') { state.f.from = state.f.to = dayKey(now()); render(); }
     else if (a === 'f-week') { state.f.from = dayKey(new Date(now().getTime() - 6 * 864e5)); state.f.to = dayKey(now()); render(); }
     else if (a === 'f-clear') { state.f = { from: '', to: '', client: '', test: '' }; render(); }
@@ -1885,6 +2062,7 @@ th { color: var(--muted); }
     if (ev.target.id === 'batchSel') { state.batch = ev.target.value; render(); }
     const fm = { 'f-from': 'from', 'f-to': 'to', 'f-client': 'client', 'f-test': 'test' }[ev.target.id];
     if (fm) { state.f[fm] = ev.target.value; render(); }
+    if (ev.target.id === 'g-role') { state.guideRole = ev.target.value; render(); }
     if (ev.target.id === 'm-period') { state.mperiod = Number(ev.target.value) || 90; render(); }
     if (ev.target.id === 'sub-preset') { const pr = PLAN_PRESETS[Number(ev.target.value)]; if (pr) { $('#sub-plan').value = pr.plan; $('#sub-fee').value = pr.fee; $('#sub-quota').value = pr.quota; $('#sub-extra').value = pr.extraDiscount; } }
     if (ev.target.id === 'tier-period' && state.tierDraft) { state.tierDraft.period = ev.target.value; }
