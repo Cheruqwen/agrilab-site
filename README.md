@@ -53,3 +53,11 @@ Follow [SETUP.md](SETUP.md). Until it is connected, `/ops/` shows a sign-in page
    ```
 
 The Google Sheet and `ops/config.js` stay exactly as they are.
+
+## Offline demo for staff training
+
+`node demo/build-demo.js` builds a copy of the website and staff system in `../agrilab-demo` that opens straight from disk, with no internet or Google Sheet. It runs the real `apps-script/Code.gs` in the browser and keeps records there, with one demo person per role (names and PINs are in its `README.txt`). Rebuild it after changing the site or the script.
+
+## Staff roles
+
+Who can do what is set in one table, `PERMS`, which appears in both `apps-script/Code.gs` (which enforces it) and `ops/index.html` (which shows it). Change both together.

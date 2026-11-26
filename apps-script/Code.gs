@@ -24,6 +24,29 @@ var TEST_CODES = ['NS-01', 'PR-01', 'OL-01', 'WC-01', 'SM-01', 'AF-01', 'AF-02',
 var STATUSES = ['received', 'analysis', 'review', 'ready', 'reported'];
 var ROLES = ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'];
 var SIGNERS = ['director', 'lab_manager'];
+// Who can do what. The staff page (ops/index.html) shows the same table; keep the two in step.
+var PERMS = {
+  logSample: ['director', 'lab_manager', 'client_desk', 'field_officer'],
+  payment: ['director', 'lab_manager', 'client_desk'],
+  batch: ['director', 'lab_manager', 'analyst'],
+  results: ['director', 'lab_manager', 'analyst'],
+  signOff: ['director', 'lab_manager'],
+  sendReport: ['director', 'lab_manager', 'client_desk'],
+  consult: ['director', 'lab_manager', 'client_desk'],
+  dispose: ['director', 'lab_manager', 'analyst'],
+  stock: ['director', 'lab_manager', 'analyst'],
+  qc: ['director', 'lab_manager', 'analyst'],
+  visitors: ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'],
+  bigDiscount: ['director']
+};
+var PERM_TEXT = {
+  logSample: 'log samples', payment: 'record payments', batch: 'start test batches', results: 'enter results',
+  signOff: 'sign off or return results', sendReport: 'send reports', consult: 'mark consultations done', dispose: 'mark samples disposed',
+  stock: 'change kit stock', qc: 'log QC', visitors: 'sign in visitors', bigDiscount: 'approve discounts of 50% or more'
+};
+function need_(me, perm) {
+  if ((PERMS[perm] || []).indexOf(me.role) < 0) fail_('forbidden', 'Your role can’t ' + PERM_TEXT[perm] + '.');
+}
 var BOOL = ['express', 'paid', 'consent', 'active', 'grinding', 'consult'];
 var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax', 'consultFee', 'quoted'].concat(RESULT_FIELDS);
 var TZ = 'Africa/Nairobi';
@@ -182,7 +205,10 @@ function data_(req) {
 
 function createSample_(req) {
   var me = session_(req);
+  need_(me, 'logSample');
   var s = req.sample || {};
+  if (s.paid) need_(me, 'payment');
+  if (Number(s.discount) >= 50) need_(me, 'bigDiscount');
   if (!String(s.clientName || '').trim()) fail_('invalid', 'Enter the client’s name.');
   var tests = Array.isArray(s.tests) ? s.tests : [];
   if (!tests.length || tests.some(function (t) { return TEST_CODES.indexOf(t) < 0; })) fail_('invalid', 'Choose at least one valid test.');
@@ -228,6 +254,10 @@ function updateSample_(req) {
     var next = JSON.parse(JSON.stringify(cur));
     var touchesResults = RESULT_FIELDS.some(function (f) { return patch[f] !== undefined; });
     if (touchesResults && cur.status !== 'analysis') fail_('locked', 'Results are locked once a sample leaves analysis.');
+    if (touchesResults) need_(me, 'results');
+    var touchesPay = (patch.paid !== undefined && !!patch.paid !== !!cur.paid) || (patch.mpesa !== undefined && String(patch.mpesa) !== String(cur.mpesa || '')) || (patch.price !== undefined && Number(patch.price) !== Number(cur.price));
+    if (touchesPay) need_(me, 'payment');
+    if (patch.consultDone === true) need_(me, 'consult');
     UPDATE_FIELDS.forEach(function (f) { if (patch[f] !== undefined && f !== 'status') next[f] = clean_(f, patch[f]); });
     if (patch.consultDone === true && cur.consult && !cur.consultDoneAt) next.consultDoneAt = now;
     if (cur.startedAt && cur.paid && patch.paid === false) fail_('locked', 'This sample is already being tested, so its payment can’t be undone.');
@@ -236,16 +266,17 @@ function updateSample_(req) {
       var to = patch.status, from = cur.status;
       if (STATUSES.indexOf(to) < 0) fail_('invalid', 'Unknown status.');
       if (to === 'analysis' && from === 'received') fail_('invalid', 'Start testing by adding the sample to a batch.');
-      else if (to === 'analysis' && from === 'review') { /* returned to the analyst */ }
+      else if (to === 'analysis' && from === 'review') { need_(me, 'signOff'); /* returned to the analyst */ }
       else if (to === 'review' && from === 'analysis') {
         var any = RESULT_FIELDS.some(function (f) { return next[f] !== null && next[f] !== '' && next[f] !== undefined; });
         if (!any) fail_('invalid', 'Enter the results before sending for review.');
+        need_(me, 'results');
         next.analystId = me.id; next.analysedAt = now;
       } else if (to === 'ready' && from === 'review') {
         if (SIGNERS.indexOf(me.role) < 0) fail_('forbidden', 'Only the lab manager or the Director can sign off results.');
         if (cur.analystId && cur.analystId === me.id) fail_('forbidden', 'You entered these results, so a second person must sign them off.');
         next.reviewerId = me.id; next.signedAt = now;
-      } else if (to === 'reported' && from === 'ready') { next.reportedAt = now; }
+      } else if (to === 'reported' && from === 'ready') { need_(me, 'sendReport'); next.reportedAt = now; }
       else fail_('invalid', 'That step is not allowed from “' + from + '”.');
       next.status = to;
     }
@@ -265,6 +296,7 @@ function updateSample_(req) {
 /** Starts testing for paid samples by putting them in a batch of up to 96: a new one, or one opened earlier. */
 function startBatch_(req) {
   var me = session_(req);
+  need_(me, 'batch');
   var ids = Array.isArray(req.ids) ? req.ids.map(String) : [];
   if (!ids.length) fail_('invalid', 'Choose at least one sample for the batch.');
   if (ids.length > BATCH_MAX) fail_('invalid', 'A batch holds at most ' + BATCH_MAX + ' samples.');
@@ -308,6 +340,7 @@ function startBatch_(req) {
 /** Records that samples have been thrown away (at most two weeks after they arrive). */
 function markDisposed_(req) {
   var me = session_(req);
+  need_(me, 'dispose');
   var ids = Array.isArray(req.ids) ? req.ids.map(String) : [];
   if (!ids.length) fail_('invalid', 'Choose the samples that were disposed of.');
   var lock = LockService.getScriptLock();
@@ -336,7 +369,7 @@ function markDisposed_(req) {
 /** Signs the visitors book. Staff at reception send their token; the online book (/visit/) sends none. */
 function signVisitor_(req) {
   var me = null;
-  if (req.token) me = session_(req);
+  if (req.token) { me = session_(req); need_(me, 'visitors'); }
   var v = req.visitor || {};
   if (v.website) return { visitor: null }; // spam trap field, left empty by people
   var name = String(v.name || '').trim();
@@ -368,6 +401,7 @@ function signVisitor_(req) {
 
 function addStock_(req) {
   var me = session_(req);
+  need_(me, 'stock');
   var k = req.kit || {};
   if (!String(k.item || '').trim() || !String(k.lot || '').trim()) fail_('invalid', 'Enter the kit name and lot number.');
   var now = new Date().toISOString();
@@ -379,6 +413,7 @@ function addStock_(req) {
 
 function updateStock_(req) {
   var me = session_(req);
+  need_(me, 'stock');
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
@@ -397,6 +432,7 @@ function updateStock_(req) {
 
 function saveQC_(req) {
   var me = session_(req);
+  need_(me, 'qc');
   var q = req.qc || {};
   var date = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
   var ok = ['pass', 'fail', 'not run'];

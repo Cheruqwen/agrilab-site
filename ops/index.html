@@ -222,6 +222,23 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
 .meter span { display: block; height: 100%; background: var(--bar); border-radius: 99px; }
 .alert .cell { min-width: 0; }
 .alert .cell small { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rolecard { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.rolecard summary { cursor: pointer; padding: 12px 14px; display: grid; gap: 2px; list-style: none; }
+.rolecard summary::-webkit-details-marker { display: none; }
+.rolecard summary b { color: var(--ink); font-family: var(--font-display); font-size: 16px; }
+.rolecard summary::after { content: "Show what this role can do"; font-size: 12.5px; color: var(--accent); font-weight: 600; }
+.rolecard[open] summary::after { content: "Hide"; }
+.rolegrid { display: grid; gap: 14px; padding: 0 14px 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.rolegrid .k { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+.rolegrid ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; }
+.rolegrid ul li { padding-left: 22px; position: relative; }
+.rolegrid ul.can li::before { content: "✓"; position: absolute; left: 0; color: var(--good); font-weight: 700; }
+.rolegrid ul.cant li { color: var(--muted); }
+.rolegrid ul.cant li::before { content: "✕"; position: absolute; left: 0; color: var(--bad); }
+.demo-users { display: grid; gap: 10px; }
+.demo-user { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.perm-table td, .perm-table th { text-align: center; }
+.perm-table td:first-child, .perm-table th:first-child { text-align: left; }
 .batch-sel { width: auto; min-width: 180px; padding: 6px 10px; border-radius: 999px; font-size: 13.5px; }
 </style>
 </head>
@@ -409,7 +426,52 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   const SIGNERS = ['director', 'lab_manager'];
   const ROLE_LABEL = { director: 'Director', lab_manager: 'Lab manager', analyst: 'Analyst', client_desk: 'Client desk', field_officer: 'Field officer' };
   const RESULT_KEYS = Object.keys(FIELDS);
+  // Who can do what. The same table is in apps-script/Code.gs, which enforces it; keep the two in step.
+  const ALL_ROLES = ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'];
+  const PERMS = {
+    logSample: ['director', 'lab_manager', 'client_desk', 'field_officer'],
+    payment: ['director', 'lab_manager', 'client_desk'],
+    batch: ['director', 'lab_manager', 'analyst'],
+    results: ['director', 'lab_manager', 'analyst'],
+    signOff: ['director', 'lab_manager'],
+    sendReport: ['director', 'lab_manager', 'client_desk'],
+    consult: ['director', 'lab_manager', 'client_desk'],
+    dispose: ['director', 'lab_manager', 'analyst'],
+    stock: ['director', 'lab_manager', 'analyst'],
+    qc: ['director', 'lab_manager', 'analyst'],
+    closeout: ['director', 'lab_manager', 'client_desk'],
+    visitors: ALL_ROLES,
+    bigDiscount: ['director']
+  };
+  const PERM_LABEL = {
+    logSample: 'Log new samples', payment: 'Record M-Pesa payments (paid in full)', batch: 'Put paid samples into test batches',
+    results: 'Enter results and send them for review', signOff: 'Sign off results (never their own)', sendReport: 'Send reports to clients',
+    consult: 'Mark nutritional consultations done', dispose: 'Mark samples disposed', stock: 'Add and update test kit stock',
+    qc: 'Log the daily QC', closeout: 'Run the daily close-out', visitors: 'Sign in visitors', bigDiscount: 'Approve 50% discounts and free trials'
+  };
+  const ROLE_SUMMARY = {
+    director: 'Runs the lab. Can do everything, and is the only one who approves big discounts and free trials.',
+    lab_manager: 'Runs the bench and the second sign-off. Can do everything except approve big discounts.',
+    analyst: 'Tests samples: builds batches, enters results, logs QC and stock, disposes of old samples.',
+    client_desk: 'Front of house: signs in visitors, logs samples, takes payment, sends reports, closes the day.',
+    field_officer: 'Collects samples in the field: logs them and signs in visitors. Payment is confirmed by the client desk.'
+  };
+  const can = perm => state.demo || !state.me ? true : (PERMS[perm] || []).includes(state.me.role);
+  const whoCan = perm => (PERMS[perm] || []).map(r => ROLE_LABEL[r]).join(', ');
+  function roleCard(role, open) {
+    const yes = Object.keys(PERMS).filter(k => PERMS[k].includes(role)), no = Object.keys(PERMS).filter(k => !PERMS[k].includes(role));
+    return `<details class="rolecard" ${open ? 'open' : ''}><summary><b>${esc(ROLE_LABEL[role])}</b><span class="note">${esc(ROLE_SUMMARY[role])}</span></summary>
+      <div class="rolegrid"><div><p class="k">Can</p><ul class="can">${yes.map(k => `<li>${esc(PERM_LABEL[k])}</li>`).join('')}</ul></div>
+      <div><p class="k">Can’t</p>${no.length ? `<ul class="cant">${no.map(k => `<li>${esc(PERM_LABEL[k])}</li>`).join('')}</ul>` : '<p class="note">Nothing: every action is open to this role.</p>'}</div></div></details>`;
+  }
   async function api(action, payload) {
+    // The offline demo copy runs the real Apps Script code in this browser (see the demo's ops/config.js).
+    if (window.AGRILAB_LOCAL) {
+      await new Promise(r => setTimeout(r, 150));
+      const j = window.AGRILAB_LOCAL(Object.assign({ action, token: state.token }, payload || {}));
+      if (!j.ok) { const e = new Error(j.message || j.error || 'Something went wrong.'); e.code = j.error; throw e; }
+      return j;
+    }
     let res;
     try { res = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ action, token: state.token }, payload || {})) }); }
     catch (x) { const e = new Error('Could not reach the lab’s Google Sheet. Check the internet connection and try again.'); e.code = 'network'; throw e; }
@@ -589,6 +651,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     let b = '';
     if (state.demo) b = `<div class="banner demo"><div class="banner-inner">Example data for a walk-through. Nothing here is real and nothing you change is saved. <button class="btn small" data-action="exit-demo" type="button">Back to live data</button></div></div>`;
     else if (!API) b = `<div class="banner"><div class="banner-inner">Not connected to the lab’s Google Sheet yet. Paste the web app address into ops/config.js (SETUP.md explains how). You can explore with example data meanwhile.</div></div>`;
+    else if (window.AGRILAB_DEMO && state.token) b = `<div class="banner demo"><div class="banner-inner">Offline demo copy: records are kept in this browser only. Sign out to switch to another role.</div></div>`;
     else if (state.token && state.connected === 'offline') b = `<div class="banner"><div class="banner-inner">Can’t reach the lab sheet right now. Showing the last records loaded; check the connection, then press Refresh.</div></div>`;
     $('#banner').innerHTML = b;
   }
@@ -603,6 +666,19 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <p class="err" id="l-err" role="alert"></p>
       </form>` : `<p class="note">This system isn’t connected to the lab’s Google Sheet yet.</p>`}
       <p class="note">Just looking? <button class="linkbtn" type="button" data-action="enter-demo">Explore with example data</button></p>
+    </section>${window.AGRILAB_DEMO ? viewDemoUsers() : ''}`;
+  }
+  // Offline demo: one-click sign-in for each role, and what each role can do.
+  function viewDemoUsers() {
+    const users = window.AGRILAB_DEMO.users;
+    const perms = Object.keys(PERMS);
+    return `<section class="panel" style="max-width:860px;margin:0 auto;width:100%">
+      <div class="panel-head"><h2>Demo: sign in as each role</h2><button class="btn small" type="button" data-action="demo-reset">Reset demo data</button></div>
+      <p class="note">This copy runs on this computer only. Records are kept in this browser until you reset them. Each person below has the PIN shown.</p>
+      <div class="demo-users">${users.map(u => `<div class="demo-user">${roleCard(u.role, false).replace('<b>' + esc(ROLE_LABEL[u.role]) + '</b>', '<b>' + esc(u.name) + ' · ' + esc(ROLE_LABEL[u.role]) + ' <span class="chip">PIN ' + esc(u.pin) + '</span></b>')}<button class="btn primary small" type="button" data-action="demo-login" data-name="${esc(u.name)}" data-pin="${esc(u.pin)}">Sign in</button></div>`).join('')}</div>
+      <h3>Who can do what</h3>
+      <div class="tbl-wrap"><table class="perm-table"><thead><tr><th>Action</th>${ALL_ROLES.map(r => `<th>${esc(ROLE_LABEL[r])}</th>`).join('')}</tr></thead>
+      <tbody>${perms.map(k => `<tr><td>${esc(PERM_LABEL[k])}</td>${ALL_ROLES.map(r => PERMS[k].includes(r) ? '<td><span class="chip good">Yes</span></td>' : '<td><span class="note">—</span></td>').join('')}</tr>`).join('')}</tbody></table></div>
     </section>`;
   }
   function render() {
@@ -666,6 +742,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     const pipeline = STATUSES.map(([k, l], i) => `<button class="stage" type="button" data-filter-go="${k}"><b class="num">${counts[i]}</b><span>${esc(l)}${k === 'reported' ? ' this month' : ''}</span></button>`).join('');
 
     return `
+      ${!state.demo && state.me && ROLE_LABEL[state.me.role] ? `<section class="panel"><div class="panel-head"><h2>What you can do</h2><span class="hint">Signed in as ${esc(state.me.name)}</span></div>${roleCard(state.me.role, false)}</section>` : ''}
       <div class="kpis">
         <div class="kpi"><span class="label">Received today</span><span class="value">${inToday.length}</span><span class="sub">${repToday.length} reported today</span></div>
         <div class="kpi"><span class="label">Open jobs</span><span class="value">${open.length}</span><span class="sub">${awaiting.length} awaiting sign-off</span></div>
@@ -795,15 +872,15 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <div class="field"><label for="n-channel">Received via</label><select id="n-channel">${opt(CHANNELS)}</select></div>
         <div class="field"><label for="n-agrovet">Agrovet or courier name</label><input id="n-agrovet" placeholder="If dropped off or couriered"></div>
         <div class="field"><label for="n-heard">How did they hear about us?</label><select id="n-heard">${opt(HEARD)}</select></div>
-        <div class="field"><label for="n-discount">Discount</label><select id="n-discount"><option value="0">None</option><option value="10">10% (20+ samples this month)</option><option value="20">20% (50+ samples this month)</option><option value="50">50% (launch offer)</option><option value="100">Free trial (Director approved)</option></select></div>
+        <div class="field"><label for="n-discount">Discount</label><select id="n-discount"><option value="0">None</option><option value="10">10% (20+ samples this month)</option><option value="20">20% (50+ samples this month)</option><option value="50" ${can('bigDiscount') ? '' : 'disabled'}>50% (launch offer)</option><option value="100" ${can('bigDiscount') ? '' : 'disabled'}>Free trial (Director approved)</option></select></div>
       </div>
       <div class="fgrid">
         <div class="field"><label for="n-mpesa">M-Pesa code</label><input id="n-mpesa" class="mono" placeholder="e.g. TKX4ABC12D" autocomplete="off" style="text-transform:uppercase"></div>
-        <div class="field" style="align-content:end"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-paid"> Paid in full</label><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-express"> Express aflatoxin (+50%)</label><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-consent" checked> Client agrees to anonymised data use</label></div>
+        <div class="field" style="align-content:end"><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-paid" ${can('payment') ? '' : 'disabled'}> Paid in full${can('payment') ? '' : ' <span class="note">(confirmed by the client desk)</span>'}</label><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-express"> Express aflatoxin (+50%)</label><label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="n-consent" checked> Client agrees to anonymised data use</label></div>
       </div>
       <div class="field"><label for="n-notes">Notes</label><textarea id="n-notes" placeholder="Anything the lab should know"></textarea></div>
       <div class="summary" id="n-summary"></div>
-      <div class="row"><button class="btn primary" type="submit" ${ro ? 'disabled' : ''}>Log sample</button><span class="note" id="n-err" role="alert"></span></div>
+      <div class="row"><button class="btn primary" type="submit" ${ro || !can('logSample') ? 'disabled' : ''}>Log sample</button>${can('logSample') ? '' : `<span class="note">Samples are logged by: ${esc(whoCan('logSample'))}.</span>`}<span class="note" id="n-err" role="alert"></span></div>
     </form>`;
   }
   function readNew() {
@@ -890,12 +967,12 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     if (s.status === 'received') {
       const open = openBatches().filter(([, n]) => n < BATCH_MAX);
       actions = s.paid
-        ? `<div class="field" style="min-width:200px"><label for="d-batch">Test batch</label><select id="d-batch">${open.map(([b, n]) => `<option value="${esc(b)}">${esc(b)} · ${n}/${BATCH_MAX}</option>`).join('')}<option value="">New batch</option></select></div><button class="btn primary" type="button" data-act="start" style="align-self:end" ${ro ? 'disabled' : ''}>Start testing</button>`
+        ? `<div class="field" style="min-width:200px"><label for="d-batch">Test batch</label><select id="d-batch">${open.map(([b, n]) => `<option value="${esc(b)}">${esc(b)} · ${n}/${BATCH_MAX}</option>`).join('')}<option value="">New batch</option></select></div><button class="btn primary" type="button" data-act="start" style="align-self:end" ${ro || !can('batch') ? 'disabled' : ''}>Start testing</button>`
         : `<button class="btn primary" type="button" disabled>Start testing</button><p class="note" style="width:100%">Tests start only after full payment. Record the M-Pesa payment below first.</p>`;
     }
-    else if (s.status === 'analysis') actions = `<button class="btn" type="button" data-act="save-results" ${ro ? 'disabled' : ''}>Save results</button><button class="btn primary" type="button" data-act="to-review" ${ro ? 'disabled' : ''}>Send for review</button>`;
-    else if (s.status === 'review') actions = `<button class="btn primary" type="button" data-act="sign" ${ro || sameSigner || notSigner ? 'disabled' : ''}>Sign off results</button><button class="btn" type="button" data-act="return" ${ro ? 'disabled' : ''}>Return to analyst</button>${sameSigner ? '<p class="note" style="width:100%">You entered these results, so a second person must sign off.</p>' : notSigner ? '<p class="note" style="width:100%">Only the lab manager or the Director can sign off results.</p>' : ''}`;
-    else if (s.status === 'ready') actions = `<button class="btn primary" type="button" data-act="mark-sent" ${ro ? 'disabled' : ''}>Mark report as sent</button><button class="btn" type="button" data-act="copy-results">Copy WhatsApp message</button><button class="btn" type="button" data-act="download">Download report</button>`;
+    else if (s.status === 'analysis') actions = `<button class="btn" type="button" data-act="save-results" ${ro || !can('results') ? 'disabled' : ''}>Save results</button><button class="btn primary" type="button" data-act="to-review" ${ro || !can('results') ? 'disabled' : ''}>Send for review</button>`;
+    else if (s.status === 'review') actions = `<button class="btn primary" type="button" data-act="sign" ${ro || sameSigner || notSigner || !can('signOff') ? 'disabled' : ''}>Sign off results</button><button class="btn" type="button" data-act="return" ${ro || !can('signOff') ? 'disabled' : ''}>Return to analyst</button>${sameSigner ? '<p class="note" style="width:100%">You entered these results, so a second person must sign off.</p>' : notSigner ? '<p class="note" style="width:100%">Only the lab manager or the Director can sign off results.</p>' : ''}`;
+    else if (s.status === 'ready') actions = `<button class="btn primary" type="button" data-act="mark-sent" ${ro || !can('sendReport') ? 'disabled' : ''}>Mark report as sent</button><button class="btn" type="button" data-act="copy-results">Copy WhatsApp message</button><button class="btn" type="button" data-act="download">Download report</button>`;
     else actions = `<button class="btn" type="button" data-act="copy-results">Copy WhatsApp message</button><button class="btn" type="button" data-act="download">Download report</button>`;
 
     root.innerHTML = `<div class="drawer-back" data-act="close"></div>
@@ -917,15 +994,15 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <dt>Heard via</dt><dd>${esc(s.heardVia || '—')}</dd>
         <dt>Dispose by</dt><dd>${s.disposedAt ? 'Disposed ' + esc(fmtDT(s.disposedAt)) + ' by ' + esc(nameOf(s.disposedBy)) : esc(fmtDT(disposeByOf(s))) + (new Date(disposeByOf(s)) < now() ? ' <span class="chip bad">Past the two-week limit</span>' : '')}</dd>
       </dl>
-      <div class="row">${s.consult && !s.consultDoneAt && STATUS_INDEX[s.status] >= 3 ? `<button class="btn small" type="button" data-act="consult-done" ${ro ? 'disabled' : ''}>Consultation done</button>` : ''}${!s.disposedAt ? `<button class="btn small" type="button" data-act="dispose" ${ro ? 'disabled' : ''}>Mark sample disposed</button>` : ''}</div>
+      <div class="row">${s.consult && !s.consultDoneAt && STATUS_INDEX[s.status] >= 3 ? `<button class="btn small" type="button" data-act="consult-done" ${ro || !can('consult') ? 'disabled' : ''}>Consultation done</button>` : ''}${!s.disposedAt ? `<button class="btn small" type="button" data-act="dispose" ${ro || !can('dispose') ? 'disabled' : ''}>Mark sample disposed</button>` : ''}</div>
       <div class="box"><div class="panel-head"><h3>Results</h3><span class="note">${editable ? 'Enter each value as measured' : s.status === 'received' ? 'Start analysis to enter results' : 'Locked'}</span></div>
         ${editable ? `<div class="results">${resultsBlock}</div>` : `<div>${resultsBlock}</div>`}
         <div class="note">${s.analystId ? 'Analysed by ' + esc(nameOf(s.analystId)) + ' · ' + esc(fmtDT(s.analysedAt)) : ''}${s.reviewerId ? '<br>Signed off by ' + esc(nameOf(s.reviewerId)) + ' · ' + esc(fmtDT(s.signedAt)) : ''}${s.reportedAt ? '<br>Report sent ' + esc(fmtDT(s.reportedAt)) : ''}</div>
       </div>
-      <div class="row">${actions}</div>
+      <div class="row">${actions}${(() => { const sp = { received: s.paid ? 'batch' : 'payment', analysis: 'results', review: 'signOff', ready: 'sendReport' }[s.status]; return sp && !can(sp) ? `<p class="note" style="width:100%">Your role can’t do the next step here. It is done by: ${esc(whoCan(sp))}.</p>` : ''; })()}</div>
       <div class="box"><div class="panel-head"><h3>Payment</h3><span class="chip ${s.paid ? 'good' : 'warn'}">${s.paid ? 'Paid' : 'Unpaid'}</span></div>
         <div class="fgrid"><div class="field"><label for="p-amt">Amount (KES)</label><input id="p-amt" class="num" type="number" value="${esc(s.price)}" ${ro ? 'disabled' : ''}></div><div class="field"><label for="p-mpesa">M-Pesa code</label><input id="p-mpesa" class="mono" value="${esc(s.mpesa || '')}" style="text-transform:uppercase" ${ro ? 'disabled' : ''}></div></div>
-        <div class="row"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-paid" ${s.paid ? 'checked' : ''} ${ro || (s.paid && s.startedAt) ? 'disabled' : ''}> Paid in full</label><span class="spacer"></span><button class="btn small" type="button" data-act="save-pay" ${ro ? 'disabled' : ''}>Save payment</button></div>
+        <div class="row"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="p-paid" ${s.paid ? 'checked' : ''} ${ro || (s.paid && s.startedAt) ? 'disabled' : ''}> Paid in full</label><span class="spacer"></span><button class="btn small" type="button" data-act="save-pay" ${ro || !can('payment') ? 'disabled' : ''}>Save payment</button></div>
       </div>
       <div class="box"><div class="field"><label for="d-notes">Notes</label><textarea id="d-notes" ${ro ? 'disabled' : ''}>${esc(s.notes || '')}</textarea></div><div class="row"><button class="btn small" type="button" data-act="save-notes" ${ro ? 'disabled' : ''}>Save notes</button><span class="note">Logged by ${esc(nameOf(s.createdBy))}</span></div></div>
     </aside>`;
@@ -1003,7 +1080,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     const soon = dayKey(new Date(now().getTime() + 30 * 864e5)), today = dayKey(now());
     const rows = stock.slice().sort((a, b) => String(a.item).localeCompare(String(b.item))).map(k => {
       const low = Number(k.testsLeft) <= Number(k.reorderAt); const exp = k.expiry && k.expiry < today; const expSoon = k.expiry && !exp && k.expiry <= soon;
-      return `<tr><td>${esc(k.item)}</td><td class="mono">${esc(k.lot)}</td><td class="r"> <input type="number" min="0" value="${esc(k.testsLeft)}" id="st-${esc(k.id)}" style="width:90px;text-align:right" aria-label="Tests left for ${esc(k.item)} lot ${esc(k.lot)}" ${ro ? 'disabled' : ''}></td><td class="r num">${esc(k.reorderAt)}</td><td class="num">${esc(k.expiry || '—')}</td><td>${exp ? '<span class="chip bad">Expired</span>' : low ? '<span class="chip warn">Reorder</span>' : expSoon ? '<span class="chip warn">Expires soon</span>' : '<span class="chip good">OK</span>'}</td><td><button class="btn small" type="button" data-save-stock="${esc(k.id)}" ${ro ? 'disabled' : ''}>Save</button></td></tr>`;
+      return `<tr><td>${esc(k.item)}</td><td class="mono">${esc(k.lot)}</td><td class="r"> <input type="number" min="0" value="${esc(k.testsLeft)}" id="st-${esc(k.id)}" style="width:90px;text-align:right" aria-label="Tests left for ${esc(k.item)} lot ${esc(k.lot)}" ${ro ? 'disabled' : ''}></td><td class="r num">${esc(k.reorderAt)}</td><td class="num">${esc(k.expiry || '—')}</td><td>${exp ? '<span class="chip bad">Expired</span>' : low ? '<span class="chip warn">Reorder</span>' : expSoon ? '<span class="chip warn">Expires soon</span>' : '<span class="chip good">OK</span>'}</td><td><button class="btn small" type="button" data-save-stock="${esc(k.id)}" ${ro || !can('stock') ? 'disabled' : ''}>Save</button></td></tr>`;
     }).join('');
     const qcRows = qc.slice().sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 14).map(q => `<tr><td class="num">${esc(q.date)}</td><td><span class="chip ${q.nir === 'pass' ? 'good' : q.nir === 'fail' ? 'bad' : ''}">${esc(q.nir)}</span></td><td><span class="chip ${q.elisa === 'pass' ? 'good' : q.elisa === 'fail' ? 'bad' : ''}">${esc(q.elisa)}</span></td><td class="r num">${q.fridgeMin == null ? '—' : esc(q.fridgeMin)}–${q.fridgeMax == null ? '—' : esc(q.fridgeMax)} °C</td><td style="white-space:normal">${esc(q.notes || '')}</td><td>${esc(nameOf(q.by))}</td></tr>`).join('');
     const tq = qc.find(q => q.date === today) || {};
@@ -1016,7 +1093,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <div class="field"><label for="s-tests">Tests in lot</label><input id="s-tests" type="number" min="1" value="84" ${ro ? 'disabled' : ''}></div>
         <div class="field"><label for="s-reorder">Reorder at</label><input id="s-reorder" type="number" min="0" value="40" ${ro ? 'disabled' : ''}></div>
         <div class="field"><label for="s-exp">Expiry</label><input id="s-exp" type="date" ${ro ? 'disabled' : ''}></div>
-        <div class="field"><button class="btn primary" type="submit" ${ro ? 'disabled' : ''}>Add kit lot</button></div>
+        <div class="field"><button class="btn primary" type="submit" ${ro || !can('stock') ? 'disabled' : ''}>Add kit lot</button></div>
       </form></section>
       <section class="panel"><div class="panel-head"><h2>Daily QC log</h2><span class="hint">Log once a day before results are released.</span></div>
       <form id="qcForm" class="fgrid" novalidate style="align-items:end">
@@ -1025,7 +1102,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
         <div class="field"><label for="q-min">Fridge min °C</label><input id="q-min" type="number" step="0.1" value="${tq.fridgeMin == null ? '' : esc(tq.fridgeMin)}" ${ro ? 'disabled' : ''}></div>
         <div class="field"><label for="q-max">Fridge max °C</label><input id="q-max" type="number" step="0.1" value="${tq.fridgeMax == null ? '' : esc(tq.fridgeMax)}" ${ro ? 'disabled' : ''}></div>
         <div class="field" style="grid-column: 1 / -1"><label for="q-notes">Notes</label><input id="q-notes" value="${esc(tq.notes || '')}" placeholder="Anything out of the ordinary" ${ro ? 'disabled' : ''}></div>
-        <div class="field"><button class="btn primary" type="submit" ${ro ? 'disabled' : ''}>${tq.date ? 'Update today’s QC' : 'Save today’s QC'}</button></div>
+        <div class="field"><button class="btn primary" type="submit" ${ro || !can('qc') ? 'disabled' : ''}>${tq.date ? 'Update today’s QC' : 'Save today’s QC'}</button></div>
       </form>
       ${qc.length ? `<div class="tbl-wrap"><table><thead><tr><th>Date</th><th>NIR check</th><th>ELISA control</th><th class="r">Fridge</th><th>Notes</th><th>By</th></tr></thead><tbody>${qcRows}</tbody></table></div>` : `<p class="note">No QC entries yet.</p>`}
       </section>`;
@@ -1034,6 +1111,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
   // Close-out
   let closeDay = null;
   function viewCloseout() {
+    if (!can('closeout')) return `<section class="panel"><div class="empty"><h3>The close-out is run by the ${esc(whoCan('closeout'))}</h3><p>Your role doesn’t close the day. Ask one of them for today’s close-out note.</p></div></section>`;
     const { samples } = data(); const d = closeDay || dayKey(now());
     const inDay = samples.filter(s => dayKey(s.receivedAt) === d);
     const reported = samples.filter(s => s.reportedAt && dayKey(s.reportedAt) === d);
@@ -1103,8 +1181,8 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
     Object.keys(state.dpicked).forEach(id => { if (!dispose.some(s => s.id === id)) delete state.dpicked[id]; });
     const consults = samples.filter(s => s.consult && !s.consultDoneAt && STATUS_INDEX[s.status] >= 3);
     const line = (s, extra) => `<span class="cell"><b class="mono">${esc(s.id)}</b> · ${esc(s.client.name)}<small>${esc(s.sampleType)} · ${esc(methodsOf(s).join(', '))}${extra ? ' · ' + extra : ''}</small></span>`;
-    const pickRow = s => `<label class="pick"><input type="checkbox" data-pick="${esc(s.id)}" ${state.picked[s.id] ? 'checked' : ''} ${ro ? 'disabled' : ''}>${line(s, `${s.sampleState === 'wet' ? 'wet' : 'dry'}${s.grinding ? ', grind first' : ''}`)}<span class="note">${esc(fmtDT(s.paidAt || s.receivedAt))}</span></label>`;
-    const dispRow = s => `<label class="pick"><input type="checkbox" data-dpick="${esc(s.id)}" ${state.dpicked[s.id] ? 'checked' : ''} ${ro ? 'disabled' : ''}>${line(s, esc(STATUS_LABEL[s.status]))}<span class="chip ${new Date(disposeByOf(s)) < now() ? 'bad' : 'warn'}">${esc(fmtDay(disposeByOf(s)))}</span></label>`;
+    const pickRow = s => `<label class="pick"><input type="checkbox" data-pick="${esc(s.id)}" ${state.picked[s.id] ? 'checked' : ''} ${ro || !can('batch') ? 'disabled' : ''}>${line(s, `${s.sampleState === 'wet' ? 'wet' : 'dry'}${s.grinding ? ', grind first' : ''}`)}<span class="note">${esc(fmtDT(s.paidAt || s.receivedAt))}</span></label>`;
+    const dispRow = s => `<label class="pick"><input type="checkbox" data-dpick="${esc(s.id)}" ${state.dpicked[s.id] ? 'checked' : ''} ${ro || !can('dispose') ? 'disabled' : ''}>${line(s, esc(STATUS_LABEL[s.status]))}<span class="chip ${new Date(disposeByOf(s)) < now() ? 'bad' : 'warn'}">${esc(fmtDay(disposeByOf(s)))}</span></label>`;
     const openRow = s => `<button class="alert" type="button" data-open="${esc(s.id)}"><span class="chip ${s.paid ? 'info' : 'warn'}">${s.paid ? (s.sampleState === 'wet' ? 'Wet' : 'Dry') : 'Unpaid'}</span>${line(s, s.paid ? (s.grinding ? 'grind' : '') + (s.sampleState === 'wet' ? (s.grinding ? ', ' : '') + 'keep in the fridge, dry before NIR' : '') : kes(s.price) + ' to pay in full')}<span class="note">Open</span></button>`;
     return `
       <div class="kpis">
@@ -1123,12 +1201,12 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
           ${received.length ? `<div class="alerts">${received.filter(s => !s.paid).concat(prep.filter(s => s.paid)).slice(0, 14).map(openRow).join('')}</div>` : '<p class="note">Nothing waiting. Every received sample is in a batch.</p>'}
         </section>
       </div>
-      <section class="panel"><div class="panel-head"><h2>Build a test batch</h2><span class="hint">Only samples paid in full can be added. One batch holds up to ${BATCH_MAX}.</span></div>
-        <div class="filters">${PICK_METHODS.map(x => `<button class="fchip" type="button" data-pmethod="${esc(x)}" aria-pressed="${m === x}">${esc(x)}</button>`).join('')}<span class="spacer"></span><button class="btn small" type="button" data-action="pick-all" ${ro || !ready.length ? 'disabled' : ''}>Select all shown</button><button class="btn small" type="button" data-action="pick-none" ${!picked.length ? 'disabled' : ''}>Clear</button></div>
+      <section class="panel"><div class="panel-head"><h2>Build a test batch</h2><span class="hint">Only samples paid in full can be added. One batch holds up to ${BATCH_MAX}.${can('batch') ? '' : ' Batches are started by: ' + esc(whoCan('batch')) + '.'}</span></div>
+        <div class="filters">${PICK_METHODS.map(x => `<button class="fchip" type="button" data-pmethod="${esc(x)}" aria-pressed="${m === x}">${esc(x)}</button>`).join('')}<span class="spacer"></span><button class="btn small" type="button" data-action="pick-all" ${ro || !can('batch') || !ready.length ? 'disabled' : ''}>Select all shown</button><button class="btn small" type="button" data-action="pick-none" ${!picked.length ? 'disabled' : ''}>Clear</button></div>
         ${ready.length ? `<div class="picklist">${ready.map(pickRow).join('')}</div>` : `<p class="note">No paid samples waiting${m === 'All' ? '' : ' for ' + esc(m)}.</p>`}
         <div class="row"><span class="summary" style="padding:8px 14px"><span class="num"><b>${picked.length}</b> / ${BATCH_MAX} selected</span></span>
           <select id="pb-batch" class="batch-sel" aria-label="Batch to add to"><option value="">New batch</option>${open.filter(([, n]) => n < BATCH_MAX).map(([b, n]) => `<option value="${esc(b)}">Add to ${esc(b)} · ${n}/${BATCH_MAX}</option>`).join('')}</select>
-          <button class="btn primary" type="button" data-action="start-batch" ${ro || !picked.length || picked.length > BATCH_MAX ? 'disabled' : ''}>Start testing</button>
+          <button class="btn primary" type="button" data-action="start-batch" ${ro || !can('batch') || !picked.length || picked.length > BATCH_MAX ? 'disabled' : ''}>Start testing</button>
           ${picked.length > BATCH_MAX ? `<span class="chip bad">A batch holds at most ${BATCH_MAX}</span>` : ''}</div>
       </section>
       <div class="grid2">
@@ -1136,7 +1214,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
           ${open.length ? open.map(([b, n]) => { const l = samples.filter(s => s.batch === b); const done = l.filter(s => STATUS_INDEX[s.status] >= 2).length; return `<button class="alert" type="button" data-batch-go="${esc(b)}" style="grid-template-columns:1fr auto"><span class="what"><b class="mono">${esc(b)}</b> · ${n}/${BATCH_MAX} samples<span>${done} of ${n} with results · ${esc([...new Set(l.flatMap(methodsOf))].join(', '))}</span><span class="meter" style="margin-top:6px"><span style="width:${(n / BATCH_MAX * 100).toFixed(1)}%"></span></span></span><span class="note">Show</span></button>`; }).join('') : '<p class="note">No batch is in analysis right now.</p>'}
         </section>
         <section class="panel"><div class="panel-head"><h2>Dispose of samples</h2><span class="hint">no sample is kept longer than two weeks</span></div>
-          ${dispose.length ? `<div class="picklist">${dispose.map(dispRow).join('')}</div><div class="row"><button class="btn primary small" type="button" data-action="dispose-picked" ${ro || !Object.keys(state.dpicked).length ? 'disabled' : ''}>Mark ${Object.keys(state.dpicked).length || ''} disposed</button><span class="note">Tick only bags that have actually been thrown away.</span></div>` : '<p class="note">No samples are due for disposal in the next two days.</p>'}
+          ${dispose.length ? `<div class="picklist">${dispose.map(dispRow).join('')}</div><div class="row"><button class="btn primary small" type="button" data-action="dispose-picked" ${ro || !can('dispose') || !Object.keys(state.dpicked).length ? 'disabled' : ''}>Mark ${Object.keys(state.dpicked).length || ''} disposed</button><span class="note">Tick only bags that have actually been thrown away.</span></div>` : '<p class="note">No samples are due for disposal in the next two days.</p>'}
         </section>
       </div>
       <section class="panel"><div class="panel-head"><h2>Nutritional consultations to call</h2><span class="hint">results signed off, consultation not done yet</span></div>
@@ -1167,7 +1245,7 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
           <div class="field"><label for="v-purpose">Purpose of visit</label><select id="v-purpose">${VISITOR_PURPOSES.map(p => `<option>${esc(p)}</option>`).join('')}</select></div>
         </div>
         <div class="field"><label for="v-notes">Notes</label><input id="v-notes" placeholder="Who they came to see, anything to follow up"></div>
-        <div class="row"><button class="btn primary" type="submit" ${ro ? 'disabled' : ''}>Sign in visitor</button><span class="note" id="v-err" role="alert"></span></div>
+        <div class="row"><button class="btn primary" type="submit" ${ro || !can('visitors') ? 'disabled' : ''}>Sign in visitor</button><span class="note" id="v-err" role="alert"></span></div>
       </form>
       <section class="panel"><div class="panel-head"><h2>Online visitors book</h2></div>
         <p>Visitors can sign in from their phone, or on a tablet at reception, at this address. Entries appear here.</p>
@@ -1231,6 +1309,12 @@ pre.msg { margin: 0; white-space: pre-wrap; font-family: var(--font-mono); font-
       if (!canWriteNow()) return; const ids = Object.keys(state.dpicked || {}); if (!ids.length) return;
       t.disabled = true; if (await markDisposed(ids)) state.dpicked = {}; render();
     }
+    else if (a === 'demo-login') {
+      t.disabled = true;
+      try { const j = await api('login', { name: t.dataset.name, pin: t.dataset.pin }); state.token = j.token; state.me = j.staff; saveSession(); state.view = 'dashboard'; setView('dashboard'); await loadData(); }
+      catch (e) { toast(e.message); t.disabled = false; }
+    }
+    else if (a === 'demo-reset') { if (confirm('Reset the demo? This deletes every sample, visitor and change made in this demo and restores the starting records.')) { window.AGRILAB_DEMO.reset(); signOut(true); toast('Demo data reset'); } }
     else if (a === 'copy-visit') copy(visitUrl());
     else if (a === 'export-visitors') saveFile(`agrilab-visitors-${dayKey(now())}.csv`, visitorsCsv(), 'text/csv');
     else if (a === 'export-csv') {
