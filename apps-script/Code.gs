@@ -10,30 +10,39 @@ var SHEETS = {
   Samples: ['id', 'receivedAt', 'status', 'clientName', 'clientPhone', 'clientType', 'clientArea', 'sampleType', 'description',
     'sampledOn', 'tests', 'express', 'channel', 'agrovet', 'heardVia', 'discount', 'price', 'paid', 'mpesa', 'paidAt', 'consent',
     'dueAt', 'startedAt', 'analystId', 'analysedAt', 'reviewerId', 'signedAt', 'reportedAt', 'createdBy', 'notes',
-    'moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota', 'updatedAt', 'updatedBy'],
+    'moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota', 'updatedAt', 'updatedBy',
+    // Added later: kept at the end so existing sheets keep their columns in place.
+    'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'batch', 'consult', 'consultFee', 'quoted',
+    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt'],
   Stock: ['id', 'item', 'lot', 'testsLeft', 'reorderAt', 'expiry', 'addedAt', 'updatedAt', 'updatedBy'],
   QC: ['date', 'nir', 'elisa', 'fridgeMin', 'fridgeMax', 'notes', 'by', 'at'],
-  Staff: ['id', 'name', 'role', 'pin', 'active']
+  Staff: ['id', 'name', 'role', 'pin', 'active'],
+  Visitors: ['id', 'at', 'name', 'phone', 'email', 'county', 'landmark', 'purpose', 'notes', 'source', 'by']
 };
 var RESULT_FIELDS = ['moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota'];
-var TEST_CODES = ['NS-01', 'AF-01', 'AF-02', 'AM-01', 'FS-01', 'MY-01', 'MY-02', 'MY-03', 'MY-04', 'MP-01'];
+var TEST_CODES = ['NS-01', 'PR-01', 'OL-01', 'WC-01', 'SM-01', 'AF-01', 'AF-02', 'AM-01', 'FS-01', 'MY-01', 'MY-02', 'MY-03', 'MY-04', 'MP-01'];
 var STATUSES = ['received', 'analysis', 'review', 'ready', 'reported'];
 var ROLES = ['director', 'lab_manager', 'analyst', 'client_desk', 'field_officer'];
 var SIGNERS = ['director', 'lab_manager'];
-var BOOL = ['express', 'paid', 'consent', 'active'];
-var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax'].concat(RESULT_FIELDS);
+var BOOL = ['express', 'paid', 'consent', 'active', 'grinding', 'consult'];
+var NUM = ['discount', 'price', 'testsLeft', 'reorderAt', 'fridgeMin', 'fridgeMax', 'consultFee', 'quoted'].concat(RESULT_FIELDS);
 var TZ = 'Africa/Nairobi';
 var SESSION_SECONDS = 21600; // 6 hours, the longest the script cache keeps a value
 var MAX_TRIES = 5;
+var BATCH_MAX = 96;         // one microplate
+var KEEP_DAYS = 14;         // samples are disposed of no later than two weeks after they arrive
+var VISITOR_PURPOSES = ['Bringing a sample', 'Collecting results', 'Nutritional consultation', 'Enquiry', 'Delivery', 'Partnership or business', 'Other'];
 
 // Fields the website may set when it logs a sample, and fields it may change later.
 var CREATE_FIELDS = ['clientName', 'clientPhone', 'clientType', 'clientArea', 'sampleType', 'description', 'sampledOn', 'tests',
-  'express', 'channel', 'agrovet', 'heardVia', 'discount', 'price', 'paid', 'mpesa', 'consent', 'dueAt', 'notes'];
-var UPDATE_FIELDS = ['status', 'price', 'paid', 'mpesa', 'notes'].concat(RESULT_FIELDS);
+  'express', 'channel', 'agrovet', 'heardVia', 'discount', 'price', 'paid', 'mpesa', 'consent', 'dueAt', 'notes',
+  'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'consult', 'consultFee', 'quoted'];
+var UPDATE_FIELDS = ['status', 'price', 'paid', 'mpesa', 'notes', 'sampleState', 'grinding', 'packaging'].concat(RESULT_FIELDS);
 
 /* ------------------------------------------------------------------ setup */
 
-/** Run once from the Apps Script editor: creates the four tabs and the first staff row. */
+/** Run once from the Apps Script editor: creates the tabs and the first staff row.
+ *  Safe to run again after updating this script: it adds any new columns and tabs and keeps the data. */
 function setup() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   Object.keys(SHEETS).forEach(function (name) {
@@ -48,7 +57,7 @@ function setup() {
     staff.appendRow(['S1', 'Lawrence Maina', 'director', 'change-me-2468', 'yes']);
   }
   var first = ss.getSheetByName('Sheet1');
-  if (first && ss.getSheets().length > 4) ss.deleteSheet(first);
+  if (first && ss.getSheets().length > Object.keys(SHEETS).length) ss.deleteSheet(first);
   return 'AgriLab Ops sheet is ready. Edit the Staff tab, then deploy the web app.';
 }
 
@@ -81,6 +90,9 @@ function route_(req) {
     case 'addStock': return addStock_(req);
     case 'updateStock': return updateStock_(req);
     case 'saveQC': return saveQC_(req);
+    case 'startBatch': return startBatch_(req);
+    case 'markDisposed': return markDisposed_(req);
+    case 'signVisitor': return signVisitor_(req);
     default: fail_('bad_request', 'Unknown action.');
   }
 }
@@ -159,7 +171,11 @@ function data_(req) {
   var qc = readRows_('QC');
   qc.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
   var staff = readRows_('Staff').map(function (s) { return { id: s.id, name: s.name, role: s.role, active: s.active }; });
-  return { me: me, samples: samples.slice(0, 2000), stock: readRows_('Stock'), qc: qc.slice(0, 90), staff: staff, serverTime: new Date().toISOString() };
+  var visitors = [];
+  try { visitors = readRows_('Visitors'); } catch (x) { /* tab not created yet: run setup() again */ }
+  visitors.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
+  return { me: me, samples: samples.slice(0, 2000), stock: readRows_('Stock'), qc: qc.slice(0, 90), staff: staff,
+    visitors: visitors.slice(0, 500), serverTime: new Date().toISOString() };
 }
 
 /* ------------------------------------------------------------------ samples */
@@ -186,6 +202,8 @@ function createSample_(req) {
     row.receivedAt = now.toISOString();
     row.status = 'received';
     row.createdBy = me.id;
+    row.disposeBy = new Date(now.getTime() + KEEP_DAYS * 864e5).toISOString();
+    if (['dry', 'wet'].indexOf(row.sampleState) < 0) row.sampleState = '';
     if (row.paid) row.paidAt = row.receivedAt;
     row.updatedAt = row.receivedAt;
     row.updatedBy = me.id;
@@ -211,11 +229,13 @@ function updateSample_(req) {
     var touchesResults = RESULT_FIELDS.some(function (f) { return patch[f] !== undefined; });
     if (touchesResults && cur.status !== 'analysis') fail_('locked', 'Results are locked once a sample leaves analysis.');
     UPDATE_FIELDS.forEach(function (f) { if (patch[f] !== undefined && f !== 'status') next[f] = clean_(f, patch[f]); });
+    if (patch.consultDone === true && cur.consult && !cur.consultDoneAt) next.consultDoneAt = now;
+    if (cur.startedAt && cur.paid && patch.paid === false) fail_('locked', 'This sample is already being tested, so its payment can’t be undone.');
 
     if (patch.status !== undefined && patch.status !== cur.status) {
       var to = patch.status, from = cur.status;
       if (STATUSES.indexOf(to) < 0) fail_('invalid', 'Unknown status.');
-      if (to === 'analysis' && from === 'received') { next.startedAt = now; }
+      if (to === 'analysis' && from === 'received') fail_('invalid', 'Start testing by adding the sample to a batch.');
       else if (to === 'analysis' && from === 'review') { /* returned to the analyst */ }
       else if (to === 'review' && from === 'analysis') {
         var any = RESULT_FIELDS.some(function (f) { return next[f] !== null && next[f] !== '' && next[f] !== undefined; });
@@ -238,6 +258,110 @@ function updateSample_(req) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/* ------------------------------------------------------------------ batches and disposal */
+
+/** Starts testing for paid samples by putting them in a batch of up to 96: a new one, or one opened earlier. */
+function startBatch_(req) {
+  var me = session_(req);
+  var ids = Array.isArray(req.ids) ? req.ids.map(String) : [];
+  if (!ids.length) fail_('invalid', 'Choose at least one sample for the batch.');
+  if (ids.length > BATCH_MAX) fail_('invalid', 'A batch holds at most ' + BATCH_MAX + ' samples.');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var idCol = readColumn_('Samples', 'id');
+    var batchCol = readColumn_('Samples', 'batch');
+    var nowD = new Date(), now = nowD.toISOString();
+    var batch = String(req.batch || '').trim();
+    if (batch) {
+      var inBatch = batchCol.filter(function (b) { return b === batch; }).length;
+      if (!inBatch) fail_('not_found', 'Batch ' + batch + ' was not found.');
+      if (inBatch + ids.length > BATCH_MAX) fail_('invalid', 'Batch ' + batch + ' has room for ' + (BATCH_MAX - inBatch) + ' more samples.');
+    } else {
+      var prefix = 'B-' + Utilities.formatDate(nowD, TZ, 'yyMMdd') + '-';
+      var max = 0;
+      batchCol.forEach(function (b) { if (String(b).indexOf(prefix) === 0) max = Math.max(max, parseInt(String(b).slice(prefix.length), 10) || 0); });
+      batch = prefix + ('0' + (max + 1)).slice(-2);
+    }
+    var rows = ids.map(function (id) {
+      var idx = idCol.indexOf(id);
+      if (idx < 0) fail_('not_found', 'Sample ' + id + ' was not found.');
+      var cur = readRowAt_('Samples', idx);
+      if (cur.status !== 'received') fail_('invalid', id + ' is already being tested.');
+      if (!cur.paid) fail_('unpaid', id + ' is not paid in full. Tests start only after full payment.');
+      return { idx: idx, row: cur };
+    });
+    var out = rows.map(function (x) {
+      var next = x.row;
+      next.status = 'analysis'; next.startedAt = now; next.batch = batch; next.updatedAt = now; next.updatedBy = me.id;
+      writeRowAt_('Samples', x.idx, next);
+      return roundTrip_('Samples', next);
+    });
+    return { batch: batch, samples: out };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Records that samples have been thrown away (at most two weeks after they arrive). */
+function markDisposed_(req) {
+  var me = session_(req);
+  var ids = Array.isArray(req.ids) ? req.ids.map(String) : [];
+  if (!ids.length) fail_('invalid', 'Choose the samples that were disposed of.');
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var idCol = readColumn_('Samples', 'id');
+    var now = new Date().toISOString();
+    var out = [];
+    ids.forEach(function (id) {
+      var idx = idCol.indexOf(id);
+      if (idx < 0) return;
+      var cur = readRowAt_('Samples', idx);
+      if (cur.disposedAt) { out.push(cur); return; }
+      cur.disposedAt = now; cur.disposedBy = me.id; cur.updatedAt = now; cur.updatedBy = me.id;
+      writeRowAt_('Samples', idx, cur);
+      out.push(roundTrip_('Samples', cur));
+    });
+    return { samples: out };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ------------------------------------------------------------------ visitors book */
+
+/** Signs the visitors book. Staff at reception send their token; the online book (/visit/) sends none. */
+function signVisitor_(req) {
+  var me = null;
+  if (req.token) me = session_(req);
+  var v = req.visitor || {};
+  if (v.website) return { visitor: null }; // spam trap field, left empty by people
+  var name = String(v.name || '').trim();
+  var phone = String(v.phone || '').trim();
+  if (!name) fail_('invalid', 'Enter your name.');
+  if (!phone && !String(v.email || '').trim()) fail_('invalid', 'Enter a phone number or an email address.');
+  if (!me) {
+    var cache = CacheService.getScriptCache();
+    var key = 'visit:' + Utilities.formatDate(new Date(), TZ, 'yyyyMMddHH');
+    var n = Number(cache.get(key) || 0);
+    if (n >= 60) fail_('busy', 'The online visitors book is busy. Please sign the book at reception.');
+    cache.put(key, String(n + 1), 3600);
+  }
+  var row = {
+    id: 'V' + new Date().getTime(), at: new Date().toISOString(),
+    name: name.slice(0, 120), phone: phone.slice(0, 40), email: String(v.email || '').trim().slice(0, 120),
+    county: String(v.county || '').slice(0, 60), landmark: String(v.landmark || '').slice(0, 160),
+    purpose: VISITOR_PURPOSES.indexOf(v.purpose) >= 0 ? v.purpose : 'Other', notes: String(v.notes || '').slice(0, 500),
+    source: me ? 'Reception' : 'Online', by: me ? me.id : ''
+  };
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try { sheet_('Visitors').appendRow(toRow_('Visitors', row)); }
+  finally { lock.releaseLock(); }
+  return { visitor: me ? row : { id: row.id, at: row.at } };
 }
 
 /* ------------------------------------------------------------------ stock and QC */
