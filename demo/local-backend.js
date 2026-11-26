@@ -140,6 +140,15 @@
       if (o.client === 'Sunrise Peanut Butter Ltd') return o.stype === 'Peanut butter' ? 'Own product – peanut butter' : 'Lot MW-2611-03';
       return '';
     }
+    // Feed or food for each demo sample, and which animal the feed is for.
+    function useOf(o) {
+      var food = ['Flour', 'Peanuts (groundnuts)', 'Peanut butter', 'Raw milk', 'Processed milk', 'Milk powder'].indexOf(o.stype) >= 0
+        || ['School', 'Restaurant or caterer', 'Children’s home', 'Peanut butter manufacturer or importer'].indexOf(o.ctype) >= 0;
+      if (food) return { purpose: 'food', animal: '' };
+      var byType = { 'Dairy meal or concentrate': 'Dairy cattle', 'Poultry feed': 'Poultry', 'Pig feed': 'Pigs', 'Fish feed': 'Fish', 'Silage': 'Dairy cattle', 'Hay or fodder': 'Dairy cattle' };
+      var byClient = { 'Dairy farmer': 'Dairy cattle', 'Milk co-operative': 'Dairy cattle', 'Poultry, pig or fish farmer': o.stype === 'Fish feed' ? 'Fish' : 'Poultry', 'Feed miller': 'Dairy cattle', 'Agrovet': 'Poultry' };
+      return { purpose: 'feed', animal: byType[o.stype] || byClient[o.ctype] || 'Dairy cattle' };
+    }
     function sample(o) {
       var rec = new Date(t - o.ago * H), day = ymd(rec);
       serial[day] = (serial[day] || 0) + 1;
@@ -149,6 +158,7 @@
         county: o.county, landmark: o.landmark, sampleType: o.stype, description: o.desc || '', sampledOn: '',
         tests: o.tests, express: false, channel: o.channel || 'Walk-in', agrovet: '', heardVia: o.heard || 'Agrovet', discount: 0,
         price: o.price, quoted: o.quoted || null, paid: !!o.paid, mpesa: o.paid ? 'DEMO' + serial[day] + day : '', consent: true,
+        purpose: useOf(o).purpose, animal: useOf(o).animal,
         sampleState: o.wet ? 'wet' : 'dry', grinding: !!o.grind, packaging: o.pack || 'Brown khaki paper bag',
         consult: !!o.consult, consultFee: o.consult ? 500 : null,
         dueAt: new Date(rec.getTime() + (o.hours || 48) * H).toISOString(),

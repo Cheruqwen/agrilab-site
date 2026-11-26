@@ -13,7 +13,7 @@ var SHEETS = {
     'moisture', 'protein', 'fat', 'fibre', 'ash', 'starch', 'afb1', 'aft', 'afm1', 'fum', 'don', 'zea', 'ota', 'updatedAt', 'updatedBy',
     // Added later: kept at the end so existing sheets keep their columns in place.
     'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'batch', 'consult', 'consultFee', 'quoted',
-    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt', 'clientId', 'element', 'subscriptionId'],
+    'disposeBy', 'disposedAt', 'disposedBy', 'consultDoneAt', 'clientId', 'element', 'subscriptionId', 'purpose', 'animal'],
   Stock: ['id', 'item', 'lot', 'testsLeft', 'reorderAt', 'expiry', 'addedAt', 'updatedAt', 'updatedBy'],
   QC: ['date', 'nir', 'elisa', 'fridgeMin', 'fridgeMax', 'notes', 'by', 'at'],
   Staff: ['id', 'name', 'role', 'pin', 'active'],
@@ -86,7 +86,9 @@ var VISITOR_PURPOSES = ['Bringing a sample', 'Collecting results', 'Nutritional 
 // Fields the website may set when it logs a sample, and fields it may change later.
 var CREATE_FIELDS = ['clientName', 'clientPhone', 'clientType', 'clientArea', 'sampleType', 'description', 'sampledOn', 'tests',
   'express', 'channel', 'agrovet', 'heardVia', 'discount', 'price', 'paid', 'mpesa', 'consent', 'dueAt', 'notes',
-  'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'consult', 'consultFee', 'quoted'];
+  'county', 'landmark', 'sampleState', 'grinding', 'packaging', 'consult', 'consultFee', 'quoted', 'purpose', 'animal'];
+// What the sample is for: animal feed (and which animal) or human food.
+var ANIMALS = ['Dairy cattle', 'Beef cattle', 'Poultry', 'Pigs', 'Fish', 'Goats and sheep', 'Pets', 'Other animals'];
 var UPDATE_FIELDS = ['status', 'price', 'paid', 'mpesa', 'notes', 'sampleState', 'grinding', 'packaging'].concat(RESULT_FIELDS);
 
 /* ------------------------------------------------------------------ setup */
@@ -234,8 +236,17 @@ function data_(req) {
   visitors.sort(function (a, b) { return String(b.at).localeCompare(String(a.at)); });
   var clients = [];
   try { clients = readRows_('Clients').map(publicClient_); } catch (x) { /* run setup() again */ }
+  // Revenue is for the Director and Sales & marketing only. Everyone else gets each client's tier, but no spend totals or plan payments.
+  var seesRevenue = PERMS.marketing.indexOf(me.role) >= 0;
+  var st = settings_(), pays = safeRows_('SubPayments'), byClient = {};
+  samples.forEach(function (x) { if (x.clientId) (byClient[x.clientId] = byClient[x.clientId] || []).push(x); });
+  clients.forEach(function (c) {
+    var l = loyalty_(c, byClient[c.id] || [], st, pays);
+    if (!seesRevenue) l.spend = null;
+    c.loyalty = l;
+  });
   return { me: me, samples: samples.slice(0, 2000), stock: readRows_('Stock'), qc: qc.slice(0, 90), staff: staff,
-    visitors: visitors.slice(0, 500), clients: clients, settings: settings_(), subscriptions: safeRows_('Subscriptions'), subPayments: safeRows_('SubPayments'),
+    visitors: visitors.slice(0, 500), clients: clients, settings: st, subscriptions: safeRows_('Subscriptions'), subPayments: seesRevenue ? pays : [], seesRevenue: seesRevenue,
     serverTime: new Date().toISOString() };
 }
 
@@ -276,6 +287,9 @@ function createSample_(req) {
     }
     row.disposeBy = new Date(now.getTime() + KEEP_DAYS * 864e5).toISOString();
     if (['dry', 'wet'].indexOf(row.sampleState) < 0) row.sampleState = '';
+    if (['feed', 'food'].indexOf(row.purpose) < 0) fail_('invalid', 'Say whether the sample is animal feed or human food.');
+    if (row.purpose === 'food') row.animal = '';
+    else if (ANIMALS.indexOf(row.animal) < 0) fail_('invalid', 'Choose which animal the feed is for.');
     if (row.paid) row.paidAt = row.receivedAt;
     row.updatedAt = row.receivedAt;
     row.updatedBy = me.id;
@@ -558,7 +572,7 @@ function clientData_(req) {
   var out = mine.map(function (x) {
     var o = { id: x.id, receivedAt: x.receivedAt, status: x.status, sampleType: x.sampleType, description: x.description, element: x.element,
       tests: x.tests, price: x.price, paid: x.paid, paidAt: x.paidAt, startedAt: x.startedAt, dueAt: x.dueAt, reportedAt: x.reportedAt,
-      consult: x.consult, consultDoneAt: x.consultDoneAt, county: x.county, batch: x.batch };
+      consult: x.consult, consultDoneAt: x.consultDoneAt, county: x.county, batch: x.batch, purpose: x.purpose, animal: x.animal };
     if (x.status === 'reported') RESULT_FIELDS.forEach(function (f) { o[f] = x[f]; });
     return o;
   });
