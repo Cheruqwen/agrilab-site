@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Feed nutrition, silage moisture and aflatoxin testing for farmers, milk co-operatives, feed millers, peanut processors, schools and kitchens, from our laboratory in Kenol, Murang’a.">
-<meta property="og:title" content="AgriLab Solutions · Know before you feed">
-<meta property="og:description" content="Same-day feed nutrition results and fast aflatoxin testing for dairy farmers, co-operatives, feed millers and agrovets, from our laboratory in Kenol, Murang’a.">
+<meta property="og:title" content="AgriLab Solutions · The Science of Smarter Agriculture">
+<meta property="og:description" content="Protein, fat, moisture and aflatoxin results in plain words, for farmers, co-ops, millers, food processors, schools and kitchens. From our laboratory in Kenol, Murang’a.">
 <meta property="og:image" content="https://agrilab.lynnandalfred.com/assets/og-image.jpg">
 <meta property="og:url" content="https://agrilab.lynnandalfred.com/">
 <meta name="twitter:card" content="summary_large_image">
@@ -13,8 +13,8 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>AgriLab Solutions</title>
-<script>try { var t = localStorage.getItem('agrilab-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+<title>AgriLab Solutions · The Science of Smarter Agriculture</title>
+<script>var t = null; try { t = localStorage.getItem('agrilab-theme'); } catch (e) {} document.documentElement.setAttribute('data-theme', t === 'light' || t === 'dark' ? t : 'mixed');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Lexend:wght@400;500;600;700&display=swap"></noscript>
@@ -98,6 +98,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
 .header-cta { margin-left: auto; padding: 10px 16px; font-size: 15px; }
 @media (min-width: 960px) { .nav { display: flex; } .header-cta { margin-left: 8px; } }
+.tagline { font-family: var(--font-display); font-size: clamp(17px, 2vw, 21px); font-weight: 600; color: var(--navy); letter-spacing: 0.01em; display: flex; align-items: center; gap: 12px; }
+.tagline::before { content: ""; width: 28px; height: 2px; background: var(--green); flex: none; }
+.tagline span { color: var(--green); }
+.foot-tagline { font-family: var(--font-display); font-weight: 600; color: var(--band-ink); font-size: 17px; }
+.foot-logo-light { display: none; }
+.theme-switch { flex: none; display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+.theme-switch button { border: 0; background: none; color: var(--muted); border-radius: 999px; padding: 6px 11px; display: inline-flex; gap: 6px; align-items: center; font: 600 13px var(--font-body); cursor: pointer; }
+.theme-switch button:hover { color: var(--ink); }
+.theme-switch button[aria-checked="true"] { background: var(--ink); color: var(--bg); }
+.theme-switch svg { width: 15px; height: 15px; }
+@media (max-width: 1380px) { .theme-switch span { display: none; } .theme-switch button { padding: 7px 9px; } }
+.nav a, .header-cta { white-space: nowrap; }
+@media (min-width: 960px) and (max-width: 1180px) { .nav { gap: 14px; } .nav a { font-size: 14px; } .site-header .wrap { gap: 16px; } }
 .theme-btn { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
 .theme-btn:hover { border-color: var(--ink); }
 .theme-btn svg { width: 18px; height: 18px; }
@@ -494,6 +507,29 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes ping { 0% { opacity: 0.6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.32); } }
 @keyframes marquee { to { transform: translateX(-50%); } }
+/* ---------- Light theme: every section light; the navy bands become pale blue panels ---------- */
+:root[data-theme="light"] { --band: #E8EDF8; --band-ink: #1C1D4A; --band-text: #2E3254; --band-muted: #4F5478; --band-green: #23672D; --band-orange: #A54813; }
+:root[data-theme="light"] .band, :root[data-theme="light"] .dark-section { border-block: 1px solid #D5DCEC; }
+:root[data-theme="light"] .dark-section::before { background-image: radial-gradient(circle at 1px 1px, rgba(28, 29, 74, 0.10) 1px, transparent 1.6px); }
+:root[data-theme="light"] .dark-section .meaning, :root[data-theme="light"] .price-group { background: #FFFFFF; border-color: #D5DCEC; }
+:root[data-theme="light"] .price-row { border-bottom-color: var(--line); }
+:root[data-theme="light"] .dark-section .price-row .name, :root[data-theme="light"] .dark-section .price-row .kes { color: var(--ink); }
+:root[data-theme="light"] .price-row.featured { background: var(--green-soft); }
+:root[data-theme="light"] .dark-section .price-row.featured .kes { color: var(--green); }
+:root[data-theme="light"] .price-group:nth-child(3) .pg-head { border-bottom-color: var(--navy); }
+:root[data-theme="light"] .dark-section .meaning:nth-child(3) .k { color: var(--navy); }
+:root[data-theme="light"] .dark-section .btn-primary { background: var(--btn-bg); color: var(--btn-ink); }
+:root[data-theme="light"] .dark-section .consult-strip { background: var(--green-soft); border-color: transparent; }
+:root[data-theme="light"] .cta-band, :root[data-theme="light"] .cta-band .photo { background: #E8EDF8; }
+:root[data-theme="light"] .cta-band h2 { color: var(--ink); }
+:root[data-theme="light"] .cta-band .eyebrow { color: var(--green); }
+:root[data-theme="light"] .cta-band .lead { color: var(--text); }
+:root[data-theme="light"] .btn-light { color: var(--ink); border-color: #B9C2D8; }
+:root[data-theme="light"] .btn-light:hover { border-color: var(--ink); background: rgba(28, 29, 74, 0.05); }
+:root[data-theme="light"] footer { border-top: 1px solid #D5DCEC; }
+:root[data-theme="light"] .foot-logo-rev { display: none; }
+:root[data-theme="light"] .foot-logo-light { display: block; }
+:root[data-theme="light"] .plate { box-shadow: 0 0 0 1px rgba(28, 29, 74, 0.12), 0 0 0 12px rgba(45, 122, 56, 0.08), 0 30px 60px -24px rgba(28, 29, 74, 0.45); }
 </style>
 </head>
 <body>
@@ -516,7 +552,11 @@ html.js .reveal-zoom.in .photo { scale: 1; }
       <a href="portal/">Client login</a>
     </nav>
     <a class="btn btn-primary header-cta" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book a test</a>
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch to dark theme" title="Light or dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    <div class="theme-switch" role="radiogroup" aria-label="Colour theme">
+      <button type="button" role="radio" data-theme-set="light" aria-checked="false" title="Light: every section light"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Light</span></button>
+      <button type="button" role="radio" data-theme-set="mixed" aria-checked="true" title="Mixed: light pages with dark highlight sections (default)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/></svg><span>Mixed</span></button>
+      <button type="button" role="radio" data-theme-set="dark" aria-checked="false" title="Dark: every section dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>Dark</span></button>
+    </div>
   </div>
   <span class="progress" aria-hidden="true"></span>
 </header>
@@ -526,9 +566,9 @@ html.js .reveal-zoom.in .photo { scale: 1; }
     <div class="wrap">
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">Feed &amp; milk testing lab · Kenol, Murang’a</p>
+          <p class="tagline">The Science of <span>Smarter</span> Agriculture</p>
           <h1><span class="line"><span>Know before</span></span> <span class="line"><span class="accent">you feed.</span></span></h1>
-          <p class="lead">Protein, fat, moisture and aflatoxin results, in plain words. For farmers, co-ops, millers, food processors, schools and kitchens.</p>
+          <p class="lead">Protein, fat, moisture and aflatoxin results, in plain words. For farmers, co-ops, millers, food processors, schools and kitchens, from our lab in Kenol, Murang’a.</p>
           <p class="swahili">Pima kwanza, lisha baadaye.</p>
           <div class="cta-row">
             <a class="btn btn-primary btn-arrow" href="https://wa.me/254701321020?text=Hello%20AgriLab%2C%20I%20would%20like%20to%20book%20a%20test." target="_blank" rel="noopener">Book on WhatsApp</a>
@@ -1012,7 +1052,8 @@ html.js .reveal-zoom.in .photo { scale: 1; }
 <footer>
   <div class="wrap">
     <div style="display: grid; gap: 14px; align-content: start;">
-      <img src="assets/logo-reversed.png" alt="AgriLab Solutions">
+      <img class="foot-logo-rev" src="assets/logo-reversed.png" alt="AgriLab Solutions"><img class="foot-logo-light" src="assets/logo-light.png" alt="AgriLab Solutions">
+      <p class="foot-tagline">The Science of Smarter Agriculture</p>
       <p>Know before you feed. Pima kwanza, lisha baadaye.</p>
     </div>
     <div style="display: grid; gap: 8px; align-content: start;">
@@ -1043,15 +1084,21 @@ html.js .reveal-zoom.in .photo { scale: 1; }
     try { document.execCommand('copy'); if (btn) btn.textContent = 'Selected'; } catch (e) {}
     document.body.removeChild(ta);
   }
-  var themeBtn = document.getElementById('themeBtn');
-  var MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
-  var SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-  function isDark() { var a = document.documentElement.getAttribute('data-theme'); return a === 'dark'; }
-  function paintTheme() { var d = isDark(); themeBtn.innerHTML = d ? SUN : MOON; themeBtn.setAttribute('aria-label', d ? 'Switch to light theme' : 'Switch to dark theme'); var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', d ? '#11122B' : '#FFFFFF'); }
-  if (themeBtn) {
-    paintTheme();
-    themeBtn.addEventListener('click', function () { var next = isDark() ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); try { localStorage.setItem('agrilab-theme', next); } catch (e) {} paintTheme(); });
+  // Three themes. Mixed (the default) keeps light pages with dark highlight sections, the clearest contrast between sections.
+  function paintTheme() {
+    var t = document.documentElement.getAttribute('data-theme') || 'mixed';
+    document.querySelectorAll('[data-theme-set]').forEach(function (b) { b.setAttribute('aria-checked', String(b.getAttribute('data-theme-set') === t)); });
+    var m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'dark' ? '#11122B' : '#FFFFFF');
   }
+  document.querySelectorAll('[data-theme-set]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var t = b.getAttribute('data-theme-set');
+      document.documentElement.setAttribute('data-theme', t);
+      try { if (t === 'mixed') localStorage.removeItem('agrilab-theme'); else localStorage.setItem('agrilab-theme', t); } catch (e) {}
+      paintTheme();
+    });
+  });
+  paintTheme();
 
   document.querySelectorAll('.copy').forEach(function (b) {
     b.addEventListener('click', function () { copyText(b.getAttribute('data-copy'), b); });
